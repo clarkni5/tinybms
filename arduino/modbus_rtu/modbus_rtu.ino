@@ -1,5 +1,14 @@
 /**
  * ModbusRTU library: https://github.com/smarmengol/Modbus-Master-Slave-for-Arduino
+ * 
+ * Requires a JST 2.0mm 4-pin connector to connect to the TinyBMS.
+ * Modbus communication is over RS232.
+ * 
+ * SoftwareSerial modbus connections:
+ * WHITE  > X      - not used (this is 5V coming from the TinyBMS)
+ * YELLOW > pin  2 - data input pin (this is the TinyBMS Tx pin)
+ * BLACK  > pin  3 - data output pin (this is the TinyBMS Rx pin)
+ * RED    > ground - ground reference for I/O pins
  */
 
 #include <ModbusRtu.h>
@@ -23,7 +32,7 @@ float floatValue(uint16_t word1, uint16_t word2) {
 Modbus master(0);
 modbus_t telegram;
 
-SoftwareSerial softSerial(2, 3);
+SoftwareSerial softSerial(2, 3);  // Rx, Tx
 
 unsigned long u32wait;
 uint8_t u8state;
@@ -48,7 +57,7 @@ void loop() {
     if (millis() > u32wait) u8state++;  // wait state
     break;
   case 1: 
-    telegram.u8id = 0xAA;  // slave address
+    telegram.u8id = 0xAA;  // device address
     telegram.u8fct = 3;  // function code
     telegram.u16RegAdd = 36;  // start address in slave
     telegram.u16CoilsNo = 2;  // number of registers to read

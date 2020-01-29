@@ -1,5 +1,14 @@
 /**
  * ModbusMaster library: https://github.com/4-20ma/ModbusMaster
+ * 
+ * Requires a JST 2.0mm 4-pin connector to connect to the TinyBMS.
+ * Modbus communication is over RS232.
+ * 
+ * SoftwareSerial modbus connections:
+ * WHITE  > X      - not used (this is 5V coming from the TinyBMS)
+ * YELLOW > pin  2 - data input pin (this is the TinyBMS Tx pin)
+ * BLACK  > pin  3 - data output pin (this is the TinyBMS Rx pin)
+ * RED    > ground - ground reference for I/O pins
  */
 
 #include <ModbusMaster.h>
@@ -7,10 +16,7 @@
 
 const int SERIAL_BAUD = 9600;
 
-// Create the modbus interface
-ModbusMaster node;
-
-SoftwareSerial softSerial(2, 3);
+const uint8_t MODBUS_DEVICE_ID = 0xAA;
 
 /**
  * Convert two 16-bit words into a 32-bit float.
@@ -30,12 +36,17 @@ float floatValue(uint16_t words[]) {
   return value;
 }
 
+// Create the modbus interface
+ModbusMaster node;
+
+SoftwareSerial softSerial(2, 3);  // Rx, Tx
+
 void setup() {
   Serial.begin(SERIAL_BAUD);
   Serial.println("Sketch: modbus_master");
   
   softSerial.begin(115200);
-  node.begin(0xAA, softSerial);
+  node.begin(MODBUS_DEVICE_ID, softSerial);
   
   Serial.println("Init OK");
 }
@@ -72,11 +83,13 @@ void loop() {
     Serial.print("Pack voltage: ");
     Serial.print(packVoltage);
     Serial.println("V");
+    
   } else if (result == node.ku8MBResponseTimedOut) {
-    Serial.println("[ku8MBResponseTimedOut] The entire response was not received within the timeout period.");
+    Serial.println("ERROR [ku8MBResponseTimedOut] The entire response was not received within the timeout period.");
   } else if (result == node.ku8MBInvalidCRC) {
-    Serial.println("[ku8MBInvalidCRC] The CRC in the response does not match the one calculated.");
+    Serial.println("ERROR [ku8MBInvalidCRC] The CRC in the response does not match the one calculated.");
   } else {
+    Serial.print("ERROR [-] ");
     Serial.println(result);
   }
   

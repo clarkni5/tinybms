@@ -1,0 +1,99 @@
+Design ideas, thoughts, and comments
+====================================
+
+Requesting modbus data from the Tiny feels slow. The modbus protocol allows 
+you to request up to 125 holding registers in a single request, but I started 
+hitting timeouts and more frequent checksum failures when requesting more than 
+~20 registers from the Tiny. This may also be a result of using SoftwareSerial.
+
+TODO: Get some metrics on how long it takes to request modbus data and the
+frequency of timeouts or checksum failures.
+
+Per the documentation for REC BMS and Elithion, we should plan to send CAN bus 
+messages to the Sunny every 2 seconds. If I am reading it correctly, the REC 
+BMS documentation specifies a delay of 210ms between CAN messages. This leaves 
+~740ms to get the modbus data from the Tiny.
+
+TODO: Does a shorter interval between CAN bus messages, say 100ms, introduce 
+any problems?
+
+TODO: Do all CAN bus messages need to be sent on every interval?
+
+TODO: What is the longest interval between CAN messages that the Sunny will
+tolerate?
+
+On every measurement cycle, we should send CAN messages to the Sunny. On a less
+frequent cadence, I would like to send data over the network to MQTT.
+
+Because of the limited time for each measurement cycle and the time it takes to
+request data from the Tiny, we may need request subsets of the data with each
+cycle.
+
+I am thinking about breaking the data down into categories based on priority.
+- Essential: This data is required on every measurement cycle (e.g. batteryVoltage)
+- Frequent: This data may not change but is needed by the Sunny (e.g. finalChargeVoltage)
+- Interesting: This data may change but is not needed by the Sunny (e.g. cell voltages)
+- Infrequent: This data will rarely change (e.g. number of cells)
+
+Loop
+    Get essential data from the Tiny
+    Get data from one of these groups:
+        Frequent group A (every 15 loops)
+        Frequent group B
+        Interesting group A (every 30 loops)
+        Interesting group B
+        Interesting group C
+        Interesting group D
+        Infrequent group A (every 150 loops)
+    Send data to the Sunny
+    send data over the network to MQTT
+
+TODO: Confirm the possible alerts that the Sunny will respond to.
+    
+Alerts
+======
+highTemperatureAlert
+lowCellVoltageAlert
+highCellVoltageAlert
+overCurrentAlert
+lowTempAlert
+groundIsolationAlert
+contactorFaultAlert
+chargeOverCurrentAlert
+
+Essential data
+==============
+batteryVoltage -> register [36,37]
+batteryCurrent -> register [38,39]
+stateOfCharge -> register [46,47]
+stateOfChargeHighPrecision -> register [46,47]
+batteryTemp -> register 42, 43, 48 (BMS temp)
+BMS status -> register 50
+
+Frequent data
+=============
+finalChargeVoltage -> register 300
+finalDischargeVoltage -> register 301
+Charge finished current -> register 304
+batteryCapacity -> register 306
+maxDischargeCurrent -> register 317
+maxChargeCurrent -> register 318
+stateOfHealth  // we will probably need to calculate this or fake it
+
+Interesting data
+================
+Cell voltages -> registers 0-15
+Estimated time left -> register [34,35]
+Need balancing -> register 51
+Is balancing -> register 52
+overVoltageCutoff -> register 315
+underVoltageCutoff -> register 316
+dischargeOverCurrentCutoff -> register 317
+chargeOverCurrentCutoff -> register 318
+highTempCutoff -> register 319
+lowTempChargerCutoff -> register 320
+
+Infrequent data
+===============
+Number of cells detected -> register 53
+hardwareVersion -> register 500

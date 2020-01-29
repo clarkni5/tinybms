@@ -1,5 +1,7 @@
 /**
- * Library: https://github.com/Seeed-Studio/CAN_BUS_Shield
+ * Send fake CAN bus data to the SMA Sunny Island.
+ * 
+ * Required library: https://github.com/Seeed-Studio/CAN_BUS_Shield
  * 
  * MCP2515 breakout board connections:
  * INT > pin  2 - interrupt output pin (not used in this sketch)
