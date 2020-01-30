@@ -14,8 +14,9 @@
 #include <ModbusMaster.h>
 #include <SoftwareSerial.h>
 
-const int SERIAL_BAUD = 9600;
+const unsigned int SERIAL_BAUD = 9600;
 
+const unsigned int MODBUS_BAUD = 115200;
 const uint8_t MODBUS_DEVICE_ID = 0xAA;
 
 /**
@@ -45,7 +46,7 @@ void setup() {
   Serial.begin(SERIAL_BAUD);
   Serial.println("Sketch: modbus_master");
   
-  softSerial.begin(115200);
+  softSerial.begin(MODBUS_BAUD);
   node.begin(MODBUS_DEVICE_ID, softSerial);
   
   Serial.println("Init OK");

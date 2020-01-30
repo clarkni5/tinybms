@@ -14,7 +14,10 @@
 #include <ModbusRtu.h>
 #include <SoftwareSerial.h>
 
-const int SERIAL_BAUD = 9600;
+const unsigned int SERIAL_BAUD = 9600;
+
+const unsigned int MODBUS_BAUD = 115200;
+const uint8_t MODBUS_DEVICE_ID = 0xAA;
 
 /**
  * Convert two 16-bit words into a 32-bit float.
@@ -29,7 +32,7 @@ float floatValue(uint16_t word1, uint16_t word2) {
 }
 
 // Create the modbus interface
-Modbus master(0);
+Modbus master(0, softSerial, 0);
 modbus_t telegram;
 
 SoftwareSerial softSerial(2, 3);  // Rx, Tx
@@ -41,10 +44,12 @@ uint16_t au16data[16];
 void setup() {
   Serial.begin(SERIAL_BAUD);
   Serial.println("Sketch: modbus_rtu");
+
+  softSerial.begin(MODBUS_BAUD);
   
-  master.begin(&softSerial, 115200);
-  master.setTimeOut(2000);  // milliseconds
-  
+  master.setTimeOut(2000);  // milliseconds (default is 1000)
+  master.start();
+
   u32wait = millis() + 1000;
   u8state = 0;
   
@@ -57,7 +62,7 @@ void loop() {
     if (millis() > u32wait) u8state++;  // wait state
     break;
   case 1: 
-    telegram.u8id = 0xAA;  // device address
+    telegram.u8id = MODBUS_DEVICE_ID;  // device address
     telegram.u8fct = 3;  // function code
     telegram.u16RegAdd = 36;  // start address in slave
     telegram.u16CoilsNo = 2;  // number of registers to read
