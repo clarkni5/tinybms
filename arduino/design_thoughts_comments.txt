@@ -97,3 +97,42 @@ Infrequent data
 ===============
 Number of cells detected -> register 53
 hardwareVersion -> register 500
+
+
+
+Interesting flow-control pattern
+================================
+
+This pattern is used in the ModbusRtu library examples. It allows the loop to 
+frequently return control back to the system, which I suspect is helpful when 
+using things like interrupts.
+
+---
+
+unsigned long wait;
+uint8_t state;
+
+void setup() {
+  wait = millis() + 1000;
+  state = 0;
+}
+
+void loop() {
+switch(state) {
+  case 0: 
+    if (millis() > wait) state++;  // wait state
+    break;
+  case 1: 
+    // Do thing A
+    state++;
+    break;
+  case 2:
+    // Is the thingamabob ready?
+    thingamabob.poll();
+    if (thingamabob.getState() == COM_IDLE) {
+      // Do thing B
+      state = 0;
+      wait = millis() + 2000; 
+    }
+    break;
+  }
