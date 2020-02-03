@@ -16,10 +16,10 @@ int main(int argc, char** argv) {
     word batteryTemp = 241; // 24.1C
     word batteryCapacity = 1250; // 1250Ah    
     
-    printf("sizeof(byte) = %u\n", sizeof(byte));
-    printf("sizeof(word) = %u\n\n", sizeof(word));
+    printf("sizeof(byte) = %lu\n", sizeof(byte));
+    printf("sizeof(word) = %lu\n\n", sizeof(word));
     
-    byte *frame = make_charge_params_frame(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
+    byte *frame = make_charge_params_frame2(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
    
     word a, b, c, d;
     

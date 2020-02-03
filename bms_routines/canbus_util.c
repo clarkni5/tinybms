@@ -16,6 +16,19 @@ byte *make_charge_params_frame(word finalChargeVoltage, word maxChargeCurrent, w
 
 }
 
+byte *make_charge_params_frame2(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage) {
+
+    word *result = calloc(sizeof (word), 3);
+    word *p = result;
+
+    *p++ = leWord(finalChargeVoltage);
+    *p++ = leWord(maxChargeCurrent);
+    *p++ = leWord(finalDischargeVoltage);
+
+    return (byte*)result;
+
+}
+
 void parse_charge_params_frame(byte frame[], word *finalChargeVoltage, word *maxChargeCurrent, word *maxDischargeCurrent, word *finalDischargeVoltage) {
 
     *finalChargeVoltage = loHi(frame[0], frame[1]);
