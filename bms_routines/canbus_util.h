@@ -2,6 +2,7 @@
 #define CANBUS_UTIL_H
 
 #include <stdlib.h>
+#include <string.h>
 #include "arduino_util.h"
 
 #ifdef __cplusplus
@@ -15,6 +16,7 @@ void parse_soc_frame(byte frame[], word *stateOfCharge, word *stateOfHealth, wor
 byte *make_voltage_frame(word batteryVoltage, word batteryCurrent, word batteryTemp);
 void parse_voltage_frame(byte frame[], word *batteryVoltage, word *batteryCurrent, word *batteryTemp);
 byte *make_charge_params_frame2(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage);
+byte *make_charge_params_frame3(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage);
 
 #ifdef __cplusplus
 }

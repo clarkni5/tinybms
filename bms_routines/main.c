@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "canbus_util.h"
 
 int main(int argc, char** argv) {
@@ -19,8 +20,9 @@ int main(int argc, char** argv) {
     printf("sizeof(byte) = %lu\n", sizeof(byte));
     printf("sizeof(word) = %lu\n\n", sizeof(word));
     
-    byte *frame = make_charge_params_frame2(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
-   
+    //byte *frame = make_charge_params_frame2(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
+    byte *frame = make_charge_params_frame3(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
+    
     word a, b, c, d;
     
     parse_charge_params_frame(frame, &a, &b, &c, &d);
@@ -28,17 +30,24 @@ int main(int argc, char** argv) {
     free(frame);
     
     printf("finalChargeVoltage = %hu\n", a);
+    assert(a == finalChargeVoltage);
     printf("maxChargeCurrent = %hu\n", b);
+    assert(b == maxChargeCurrent);
     printf("maxDischargeCurrent = %hu\n", c);
+    assert(c == maxDischargeCurrent);
     printf("finalDischargeVoltage = %hu\n", d);
+    assert(finalDischargeVoltage == d);
     
     frame = make_soc_frame(stateOfCharge, stateOfHealth, stateOfChargeHighPrecision);
     
     parse_soc_frame(frame, &a, &b, &c);
     
     printf("stateOfCharge = %hu\n", a);
+    assert(stateOfCharge == a);
     printf("stateOfHealth = %hu\n", b);
+    assert(stateOfHealth == b);
     printf("stateOfChargeHighPrecision = %hu\n", c);
+    assert(stateOfChargeHighPrecision == c);
     
     free(frame);
     
@@ -47,10 +56,15 @@ int main(int argc, char** argv) {
     parse_voltage_frame(frame, &a, &b, &c);
     
     printf("batteryVoltage = %hu\n", a);
+    assert(batteryVoltage == a);
     printf("batteryCurrent = %hu\n", b);
+    assert(batteryCurrent == b);
     printf("batteryTemp = %hu\n", c);
+    assert(batteryTemp == c);
     
     free(frame);
+    
+    assert(1 > 2);
     
     return (EXIT_SUCCESS);
 }

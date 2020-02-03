@@ -1,5 +1,15 @@
 #include "canbus_util.h"
 
+byte *array_dup(byte *src, word size) {
+    
+    byte *result = calloc(sizeof(byte), size);
+    
+    memcpy(result, src, size);
+    
+    return result;
+    
+}
+
 byte *make_charge_params_frame(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage) {
 
     byte *result = calloc(sizeof (byte), 6);
@@ -26,6 +36,14 @@ byte *make_charge_params_frame2(word finalChargeVoltage, word maxChargeCurrent, 
     *p++ = leWord(finalDischargeVoltage);
 
     return (byte*)result;
+
+}
+
+byte *make_charge_params_frame3(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage) {
+    
+    word frame[] = {leWord(finalChargeVoltage), leWord(maxChargeCurrent), leWord(maxDischargeCurrent), leWord(finalDischargeVoltage)};
+
+    return array_dup((byte*)frame, sizeof(frame));
 
 }
 
