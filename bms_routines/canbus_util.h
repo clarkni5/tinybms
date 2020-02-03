@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-unsigned char *make_charge_params_frame(unsigned long finalChargeVoltage, long maxChargeCurrent, long maxDischargeCurrent, long finalDischargeVoltage);
-void parse_charge_params_frame(unsigned char frame[], unsigned long *finalChargeVoltage, long *maxChargeCurrent, long *maxDischargeCurrent, long *finalDischargeVoltage);
+unsigned char *make_charge_params_frame(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage);
+void parse_charge_params_frame(byte frame[], word *finalChargeVoltage, word *maxChargeCurrent, word *maxDischargeCurrent, word *finalDischargeVoltage);
 
 #ifdef __cplusplus
 }

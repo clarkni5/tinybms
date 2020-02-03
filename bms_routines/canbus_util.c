@@ -1,6 +1,6 @@
 #include "canbus_util.h"
 
-unsigned char *make_charge_params_frame(unsigned long finalChargeVoltage, long maxChargeCurrent, long maxDischargeCurrent, long finalDischargeVoltage) {
+unsigned char *make_charge_params_frame(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage) {
 
     unsigned char *result = malloc(6);
     unsigned char *p = result;
@@ -16,7 +16,7 @@ unsigned char *make_charge_params_frame(unsigned long finalChargeVoltage, long m
 
 }
 
-void parse_charge_params_frame(unsigned char frame[], unsigned long *finalChargeVoltage, long *maxChargeCurrent, long *maxDischargeCurrent, long *finalDischargeVoltage) {
+void parse_charge_params_frame(byte frame[], word *finalChargeVoltage, word *maxChargeCurrent, word *maxDischargeCurrent, word *finalDischargeVoltage) {
     
     *finalChargeVoltage = loHi(frame[0], frame[1]);
     *maxChargeCurrent = loHi(frame[2], frame[3]);

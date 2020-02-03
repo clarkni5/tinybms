@@ -5,10 +5,13 @@
 extern "C" {
 #endif
 
-#define lowByte(x) ((unsigned char)(x & 0xff))
-#define highByte(x) ((unsigned char)(x >> 8 & 0xff))
-#define loHi(x,y) ((unsigned long)(y << 8 | x))
-
+typedef short word;
+typedef unsigned char byte;
+ 
+#define lowByte(x) ((word)(x & 0xff))
+#define highByte(x) ((word)(x >> 8 & 0xff))
+#define loHi(x,y) ((word)(y << 8 | x))
+    
 #ifdef __cplusplus
 }
 #endif
