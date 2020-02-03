@@ -16,6 +16,9 @@ int main(int argc, char** argv) {
     word batteryTemp = 241; // 24.1C
     word batteryCapacity = 1250; // 1250Ah    
     
+    printf("sizeof(byte) = %u\n", sizeof(byte));
+    printf("sizeof(word) = %u\n\n", sizeof(word));
+    
     byte *frame = make_charge_params_frame(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
    
     word a, b, c, d;
@@ -28,6 +31,26 @@ int main(int argc, char** argv) {
     printf("maxChargeCurrent = %hu\n", b);
     printf("maxDischargeCurrent = %hu\n", c);
     printf("finalDischargeVoltage = %hu\n", d);
+    
+    frame = make_soc_frame(stateOfCharge, stateOfHealth, stateOfChargeHighPrecision);
+    
+    parse_soc_frame(frame, &a, &b, &c);
+    
+    printf("stateOfCharge = %hu\n", a);
+    printf("stateOfHealth = %hu\n", b);
+    printf("stateOfChargeHighPrecision = %hu\n", c);
+    
+    free(frame);
+    
+    frame = make_voltage_frame(batteryVoltage, batteryCurrent, batteryTemp);
+    
+    parse_voltage_frame(frame, &a, &b, &c);
+    
+    printf("batteryVoltage = %hu\n", a);
+    printf("batteryCurrent = %hu\n", b);
+    printf("batteryTemp = %hu\n", c);
+    
+    free(frame);
     
     return (EXIT_SUCCESS);
 }
