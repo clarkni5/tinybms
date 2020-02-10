@@ -22,7 +22,7 @@ const long MODBUS_BAUD = 115200;
 
 const uint8_t TINYBMS_DEVICE_ID = 0xAA;
 
-const uint8_t MODBUS_INTERVAL = 20;
+const uint8_t MODBUS_INTERVAL = 100;
 
 // Create the software serial interface
 SoftwareSerial softSerial(MODBUS_RX_PIN, MODBUS_TX_PIN);
@@ -80,16 +80,20 @@ void setup() {
   Serial.begin(SERIAL_BAUD);
   Serial.println("Sketch: modbus_master");
 
+  // Init the modbus interface
   softSerial.begin(MODBUS_BAUD);
-
   modbus.begin(TINYBMS_DEVICE_ID, softSerial);
 
+  // Allow the hardware to sort itself out
   delay(2000);
 
   Serial.println("Init OK");
 }
 
 void loop() {
+  // Wake up the TinyBMS
+  modbus.readHoldingRegisters(0, 1);
+  
   uint8_t j, result;
   uint16_t responseData[60];
 
@@ -98,22 +102,22 @@ void loop() {
   if (result == modbus.ku8MBSuccess) {
     for (j = 0; j < 16; j++) {
       responseData[j] = modbus.getResponseBuffer(j);
+      delay(MODBUS_INTERVAL);
     }
   } else {
     Serial.print("ERROR ");
     Serial.println(result);
   }
-  delay(MODBUS_INTERVAL);
   result = modbus.readHoldingRegisters(32, 10);  // get 10 values starting at register 32
   if (result == modbus.ku8MBSuccess) {
     for (j = 0; j < 10; j++) {
       responseData[32 + j] = modbus.getResponseBuffer(j);
+      delay(MODBUS_INTERVAL);
     }
   } else {
     Serial.print("ERROR ");
     Serial.println(result);
   }
-  delay(MODBUS_INTERVAL);
 
   if (result == modbus.ku8MBSuccess) {
     uint8_t k;
@@ -166,7 +170,7 @@ void loop() {
       Serial.println(value);
     } else {
       Serial.print("Error reading register ");
-      Serial.println(registersA[i]);
+      Serial.print(registersA[i]);
     }
     delay(MODBUS_INTERVAL);
   }
@@ -320,7 +324,7 @@ void loop() {
   unsigned long startTime;
   unsigned long elapsedTime;
 
-  // Check the speed of different ranges
+  // Check the performance when reading a range of registers
   unsigned short testValuesA[] = {1, 2, 4, 8, 16, 24, 32, 40};
   n = sizeof(testValuesA) / sizeof(testValuesA[0]);
   for (i = 0; i < n; i++) {
@@ -344,6 +348,7 @@ void loop() {
         timeoutErrorCount++;
       }
       elapsedTime += millis() - startTime;
+      delay(MODBUS_INTERVAL);
     }
 
     // Print results
@@ -387,6 +392,7 @@ void loop() {
         timeoutErrorCount++;
       }
       elapsedTime += millis() - startTime;
+      delay(MODBUS_INTERVAL);
     }
 
     // Print results
@@ -430,6 +436,7 @@ void loop() {
         timeoutErrorCount++;
       }
       elapsedTime += millis() - startTime;
+      delay(MODBUS_INTERVAL);
     }
 
     // Print results
@@ -449,7 +456,7 @@ void loop() {
     Serial.println("");
   }
 
-  // Check the error rate of different message intervals
+  // Check the error rate when imposing a delay between messages
   unsigned int testValuesD[] = {10, 20, 50, 100, 200, 400};
   n = sizeof(testValuesD) / sizeof(testValuesD[0]);
   for (i = 0; i < n; i++) {

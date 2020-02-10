@@ -1,0 +1,103 @@
+================================================================================
+ Output
+ Register output has been sorted in numerical order.
+================================================================================
+Init OK
+
+Register 0: HEX=0, UINT_16=0
+Register 1: HEX=0, UINT_16=0
+Register 2: HEX=9b78, UINT_16=39800
+Register 3: HEX=9b82, UINT_16=39810
+Register 4: HEX=9b8c, UINT_16=39820
+Register 5: HEX=9b96, UINT_16=39830
+Register 6: HEX=9b96, UINT_16=39830
+Register 7: HEX=9ba0, UINT_16=39840
+Register 8: HEX=9bd2, UINT_16=39890
+Register 9: HEX=9bdc, UINT_16=39900
+Register 10: HEX=9b96, UINT_16=39830
+Register 11: HEX=9b96, UINT_16=39830
+Register 12: HEX=9b96, UINT_16=39830
+Register 13: HEX=9ba0, UINT_16=39840
+Register 14: HEX=9bc8, UINT_16=39880
+Register 15: HEX=9bc8, UINT_16=39880
+Register 32: HEX=93cd_fe, UINT_32=16683981
+Register 34: HEX=7904_27d, UINT_32=41777412
+Register 36: HEX=1eb8_425f, FLOAT=55.78
+Register 38: HEX=0_0, FLOAT=0.00
+Register 40: HEX=f8c, UINT_16=3980
+Register 41: HEX=f96, UINT_16=3990
+Register 42: HEX=8000, INT_16=-32768
+Register 43: HEX=8000, INT_16=-32768
+Register 46: HEX=f208_4fa, UINT_32=83554824
+Register 48: HEX=61, INT_16=97
+Register 50: HEX=97, UINT_16=151
+Register 51: HEX=0, UINT_16=0
+Register 52: HEX=0, UINT_16=0
+Register 53: HEX=e, UINT_16=14
+Register 102: HEX=1fe, UINT_16=510
+Register 103: HEX=0, UINT_16=0
+Register 104: HEX=64, UINT_16=100
+Register 105: HEX=0, UINT_16=0
+Register 106: HEX=0, UINT_16=0
+Register 107: HEX=0, UINT_16=0
+Register 108: HEX=0, UINT_16=0
+Register 109: HEX=0, UINT_16=0
+Register 111: HEX=0, UINT_16=0
+Register 112: HEX=0, UINT_16=0
+Register 113: HEX=1908, INT_8 LSB=8, INT_8 MSB=25
+Register 114: HEX=300, UINT_8 LSB=0, UINT_8 MSB=3
+Register 116: HEX=8a3d_be, UINT_32=12487229
+Register 200: HEX=1226
+Register 201: HEX=6500
+Register 202: HEX=4e2b
+Register 203: HEX=64b9
+Register 204: HEX=4e2c
+Register 205: HEX=62b9
+Register 206: HEX=4e42
+Register 207: HEX=65b9
+Register 296: HEX=0
+Register 297: HEX=0
+Register 300: HEX=1036, UINT_16=4150
+Register 301: HEX=bb8, UINT_16=3000
+Register 303: HEX=c80, UINT_16=3200
+Register 304: HEX=3e8, UINT_16=1000
+Register 306: HEX=19c8, UINT_16=6600
+Register 307: HEX=e, UINT_16=14
+Register 308: HEX=f, UINT_16=15
+Register 315: HEX=1068, UINT_16=4200
+Register 316: HEX=b54, UINT_16=2900
+Register 317: HEX=3c, UINT_16=60
+Register 318: HEX=14, UINT_16=20
+Register 319: HEX=3c, INT_16=60
+Register 320: HEX=1, INT_16=1
+Register 328: HEX=ffff, UINT_16=65535
+Register 500: HEX=102
+Register 501: HEX=301
+Register 502: HEX=f2, UINT_16=242
+Register 503: HEX=418
+
+Read 1:n=50,avg=2ms,err=0,crc=0,tout=0
+Read 2:n=50,avg=2ms,err=0,crc=0,tout=0
+Read 4:n=50,avg=3ms,err=0,crc=0,tout=0
+Read 8:n=50,avg=3ms,err=0,crc=0,tout=0
+Read 16:n=50,avg=5ms,err=0,crc=0,tout=0
+Read 24:n=50,avg=6ms,err=0,crc=0,tout=0
+Read 32:n=50,avg=8ms,err=0,crc=0,tout=0
+Read 40:n=50,avg=10ms,err=0,crc=0,tout=0
+Read 125:n=50,avg=26ms,err=0,crc=0,tout=0
+
+R1 45:n=50,avg=2ms,err=0,crc=0,tout=0
+R1 49:n=50,avg=2ms,err=0,crc=0,tout=0
+R1 110:n=50,avg=1ms,err=0,crc=0,tout=0
+
+R2 0:n=50,avg=4ms,err=0,crc=0,tout=0
+R2 16:n=50,avg=5ms,err=0,crc=0,tout=0
+
+Delay10:n=50,avg=2ms,err=0,crc=0,tout=0
+Delay20:n=50,avg=2ms,err=0,crc=0,tout=0
+Delay50:n=50,avg=2ms,err=0,crc=0,tout=0
+Delay100:n=50,avg=2ms,err=0,crc=0,tout=0
+Delay200:n=50,avg=2ms,err=0,crc=0,tout=0
+Delay400:n=50,avg=2ms,err=0,crc=0,tout=0
+
+DONE
