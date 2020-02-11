@@ -1,31 +1,27 @@
 /**
- * ModbusMaster library: https://github.com/4-20ma/ModbusMaster
+ * AltSoftSerial library: https://github.com/PaulStoffregen/AltSoftSerial
  * 
  * Requires a JST 2.0mm 4-pin connector to connect to the TinyBMS.
  * Modbus communication is over RS232.
  * 
- * SoftwareSerial modbus connections:
+ * AltSerial modbus connections for Arduino Uno:
  * WHITE  > X      - not used (this is 5V coming from the TinyBMS)
- * YELLOW > pin  2 - data input pin (this is the TinyBMS Tx pin)
- * BLACK  > pin  3 - data output pin (this is the TinyBMS Rx pin)
+ * YELLOW > pin  8 - data input pin (this is the TinyBMS Tx pin)
+ * BLACK  > pin  9 - data output pin (this is the TinyBMS Rx pin)
  * RED    > ground - ground reference for I/O pins
  */
 
 #include <ModbusMaster.h>
-#include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
 
 const unsigned long SERIAL_BAUD = 9600;
 
-const uint8_t MODBUS_RX_PIN = 2;
-const uint8_t MODBUS_TX_PIN = 3;
 const long MODBUS_BAUD = 115200;
 
 const uint8_t TINYBMS_DEVICE_ID = 0xAA;
 
-const uint8_t MODBUS_INTERVAL = 100;
-
 // Create the software serial interface
-SoftwareSerial softSerial(MODBUS_RX_PIN, MODBUS_TX_PIN);
+AltSoftSerial altSerial;
 
 // Create the modbus interface
 ModbusMaster modbus;
@@ -78,11 +74,11 @@ uint8_t uint8MsbValue(uint16_t word1) {
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
-  Serial.println("Sketch: modbus_master_sw_serial");
+  Serial.println("Sketch: modbus_master_alt_sw_serial");
 
   // Init the modbus interface
-  softSerial.begin(MODBUS_BAUD);
-  modbus.begin(TINYBMS_DEVICE_ID, softSerial);
+  altSerial.begin(MODBUS_BAUD);
+  modbus.begin(TINYBMS_DEVICE_ID, altSerial);
 
   // Allow the hardware to sort itself out
   delay(2000);
@@ -102,7 +98,6 @@ void loop() {
   if (result == modbus.ku8MBSuccess) {
     for (j = 0; j < 16; j++) {
       responseData[j] = modbus.getResponseBuffer(j);
-      delay(MODBUS_INTERVAL);
     }
   } else {
     Serial.print("ERROR ");
@@ -112,7 +107,6 @@ void loop() {
   if (result == modbus.ku8MBSuccess) {
     for (j = 0; j < 10; j++) {
       responseData[32 + j] = modbus.getResponseBuffer(j);
-      delay(MODBUS_INTERVAL);
     }
   } else {
     Serial.print("ERROR ");
@@ -172,7 +166,6 @@ void loop() {
       Serial.print("Error reading register ");
       Serial.println(registersA[i]);
     }
-    delay(MODBUS_INTERVAL);
   }
 
   // Get INT_16 values
@@ -192,7 +185,6 @@ void loop() {
       Serial.print("Error reading register ");
       Serial.println(registersB[i]);
     }
-    delay(MODBUS_INTERVAL);
   }
 
   // Get UINT_32 values
@@ -216,7 +208,6 @@ void loop() {
       Serial.print("Error reading register ");
       Serial.println(registersC[i]);
     }
-    delay(MODBUS_INTERVAL);
   }
 
   // Get  FLOAT values
@@ -240,7 +231,6 @@ void loop() {
       Serial.print("Error reading register ");
       Serial.println(registersD[i]);
     }
-    delay(MODBUS_INTERVAL);
   }
 
   // Get double INT_8 values
@@ -264,7 +254,6 @@ void loop() {
       Serial.print("Error reading register ");
       Serial.println(registersE[i]);
     }
-    delay(MODBUS_INTERVAL);
   }
 
   // Get double UINT_8 values
@@ -288,7 +277,6 @@ void loop() {
       Serial.print("Error reading register ");
       Serial.println(registersF[i]);
     }
-    delay(MODBUS_INTERVAL);
   }
 
   // Get HEX values of other interesting registers
@@ -308,7 +296,6 @@ void loop() {
       Serial.print("Error reading register ");
       Serial.println(registersG[i]);
     }
-    delay(MODBUS_INTERVAL);
   }
 
   // Get some metrics on how long it takes to get modbus data
@@ -343,7 +330,6 @@ void loop() {
         timeoutErrorCount++;
       }
       elapsedTime += millis() - startTime;
-      delay(MODBUS_INTERVAL);
     }
 
     // Print results
@@ -387,7 +373,6 @@ void loop() {
         timeoutErrorCount++;
       }
       elapsedTime += millis() - startTime;
-      delay(MODBUS_INTERVAL);
     }
 
     // Print results
@@ -431,7 +416,6 @@ void loop() {
         timeoutErrorCount++;
       }
       elapsedTime += millis() - startTime;
-      delay(MODBUS_INTERVAL);
     }
 
     // Print results

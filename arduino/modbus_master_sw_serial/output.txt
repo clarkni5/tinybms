@@ -1,36 +1,135 @@
 ================================================================================
  Output
- Register output has been sorted in numerical order.
 ================================================================================
-Sketch: modbus_master
+
+Sketch: modbus_master_sw_serial
 Init OK
 
+ERROR 227
+ERROR [ku8MBInvalidCRC] The CRC in the response does not match the one calculated.
 Register 0: HEX=0, UINT_16=0
 Register 1: HEX=0, UINT_16=0
 Register 2: HEX=9B82, UINT_16=39810
-Register 3: HEX=9B96, UINT_16=39830
-Register 4: HEX=9B96, UINT_16=39830
-Register 5: HEX=9B96, UINT_16=39830
-Register 6: HEX=9B96, UINT_16=39830
-Register 7: HEX=9BAA, UINT_16=39850
+Register 3: HEX=9B8C, UINT_16=39820
+Register 4: HEX=9B8C, UINT_16=39820
+Register 5: HEX=9BA0, UINT_16=39840
+Register 6: HEX=9B8C, UINT_16=39820
+Register 7: HEX=9BA0, UINT_16=39840
 Register 8: HEX=9BDC, UINT_16=39900
 Register 9: HEX=9BDC, UINT_16=39900
 Register 10: HEX=9BA0, UINT_16=39840
-Register 11: HEX=9BA0, UINT_16=39840
-Register 12: HEX=9BAA, UINT_16=39850
+Register 11: HEX=9B96, UINT_16=39830
+Error reading register 12
 Register 13: HEX=9BA0, UINT_16=39840
-Register 14: HEX=9BC8, UINT_16=39880
-Register 15: HEX=9BD2, UINT_16=39890
-Register 32: HEX=3BD7 F8, UINT_32=16268247
-Register 34: HEX=7E3C 27D, UINT_32=41778748
-Register 36: HEX=23D7 425F, FLOAT=55.79
-Register 38: HEX=0 0, FLOAT=0.00
-Register 40: HEX=F8D, UINT_16=3981
+Error reading register 14
+Register 15: HEX=9BC8, UINT_16=39880
+Register 40: HEX=F8C, UINT_16=3980
 Register 41: HEX=F97, UINT_16=3991
+Register 50: HEX=97, UINT_16=151
+Register 51: HEX=0, UINT_16=0
+Register 52: HEX=0, UINT_16=0
+Error reading register 53
+Error reading register 102
+Register 103: HEX=0, UINT_16=0
+Register 104: HEX=5A, UINT_16=90
+Register 105: HEX=0, UINT_16=0
+Register 106: HEX=0, UINT_16=0
+Register 107: HEX=0, UINT_16=0
+Register 108: HEX=0, UINT_16=0
+Register 109: HEX=0, UINT_16=0
+Register 111: HEX=0, UINT_16=0
+Register 112: HEX=0, UINT_16=0
+Error reading register 300
+Register 301: HEX=BB8, UINT_16=3000
+Register 303: HEX=C80, UINT_16=3200
+Register 304: HEX=3E8, UINT_16=1000
+Register 306: HEX=19C8, UINT_16=6600
+Register 307: HEX=E, UINT_16=14
+Register 308: HEX=F, UINT_16=15
+Register 315: HEX=1068, UINT_16=4200
+Register 316: HEX=B54, UINT_16=2900
+Register 317: HEX=3C, UINT_16=60
+Register 318: HEX=14, UINT_16=20
+Register 328: HEX=FFFF, UINT_16=65535
+Register 502: HEX=F2, UINT_16=242
+
 Register 42: HEX=FFFF8000, INT_16=-32768
 Register 43: HEX=FFFF8000, INT_16=-32768
-Register 46: HEX=F66C 4FA, UINT_32=83555948
-Register 48: HEX=54, INT_16=84
+Register 48: HEX=64, INT_16=100
+Register 319: HEX=3C, INT_16=60
+Register 320: HEX=1, INT_16=1
+
+Register 32: HEX=A149 BE, UINT_32=12493129
+Register 34: HEX=7808 27D, UINT_32=41777160
+Register 46: HEX=F00C 4FA, UINT_32=83554316
+Register 116: HEX=8A3D BE, UINT_32=12487229
+
+Register 36: HEX=24DD 425F, FLOAT=55.79
+Register 38: HEX=0 0, FLOAT=0.00
+
+Register 113: HEX=1908, INT_8 LSB=8, INT_8 MSB=25
+
+Register 114: HEX=300, UINT_8 LSB=0, UINT_8 MSB=3
+
+Register 200: HEX=1226
+Error reading register 201
+Error reading register 202
+Register 203: HEX=64B9
+Register 204: HEX=4E2C
+Register 205: HEX=62B9
+Register 206: HEX=4E42
+Register 207: HEX=65B9
+Register 296: HEX=0
+Register 297: HEX=0
+Register 500: HEX=102
+Register 501: HEX=301
+Register 503: HEX=418
+
+Read 1 values:samples=50, avgTime=2ms, errorCount=4, crcErrorCount=4, timeoutErrorCount=0
+Read 2 values:samples=50, avgTime=2ms, errorCount=3, crcErrorCount=3, timeoutErrorCount=0
+Read 4 values:samples=50, avgTime=202ms, errorCount=17, crcErrorCount=12, timeoutErrorCount=5
+Read 8 values:samples=50, avgTime=403ms, errorCount=17, crcErrorCount=7, timeoutErrorCount=10
+Read 16 values:samples=50, avgTime=85ms, errorCount=13, crcErrorCount=11, timeoutErrorCount=2
+Read 24 values:samples=50, avgTime=87ms, errorCount=11, crcErrorCount=9, timeoutErrorCount=2
+Read 32 values:samples=50, avgTime=128ms, errorCount=32, crcErrorCount=28, timeoutErrorCount=3
+Read 40 values:samples=50, avgTime=2002ms, errorCount=50, crcErrorCount=0, timeoutErrorCount=50
+
+Read reserved register 45:samples=50, avgTime=42ms, errorCount=5, crcErrorCount=4, timeoutErrorCount=1
+Read reserved register 49:samples=50, avgTime=2ms, errorCount=3, crcErrorCount=2, timeoutErrorCount=0
+Read reserved register 110:samples=50, avgTime=2ms, errorCount=2, crcErrorCount=2, timeoutErrorCount=0
+
+Read 16 values starting at register 0:samples=50, avgTime=165ms, errorCount=13, crcErrorCount=9, timeoutErrorCount=4
+Read 16 values starting at register 16:samples=50, avgTime=205ms, errorCount=9, crcErrorCount=4, timeoutErrorCount=5
+
+Read with an interval of 10ms:samples=50, avgTime=2ms, errorCount=4, crcErrorCount=4, timeoutErrorCount=0
+Read with an interval of 20ms:samples=50, avgTime=2ms, errorCount=2, crcErrorCount=2, timeoutErrorCount=0
+Read with an interval of 50ms:samples=50, avgTime=2ms, errorCount=7, crcErrorCount=7, timeoutErrorCount=0
+Read with an interval of 100ms:samples=50, avgTime=42ms, errorCount=7, crcErrorCount=6, timeoutErrorCount=1
+Read with an interval of 200ms:samples=50, avgTime=2ms, errorCount=4, crcErrorCount=4, timeoutErrorCount=0
+Read with an interval of 400ms:samples=50, avgTime=2ms, errorCount=4, crcErrorCount=4, timeoutErrorCount=0
+
+DONE
+
+ERROR 227
+ERROR [ku8MBInvalidCRC] The CRC in the response does not match the one calculated.
+Error reading register 0
+Register 1: HEX=0, UINT_16=0
+Register 2: HEX=9B82, UINT_16=39810
+Register 3: HEX=9B82, UINT_16=39810
+Register 4: HEX=9B82, UINT_16=39810
+Register 5: HEX=9B8C, UINT_16=39820
+Register 6: HEX=9B8C, UINT_16=39820
+Register 7: HEX=9BA0, UINT_16=39840
+Register 8: HEX=9BDC, UINT_16=39900
+Register 9: HEX=9BDC, UINT_16=39900
+Register 10: HEX=9BA0, UINT_16=39840
+Register 11: HEX=9B96, UINT_16=39830
+Register 12: HEX=9BA0, UINT_16=39840
+Register 13: HEX=9BA0, UINT_16=39840
+Register 14: HEX=9BBE, UINT_16=39870
+Register 15: HEX=9BD2, UINT_16=39890
+Register 40: HEX=F8C, UINT_16=3980
+Error reading register 41
 Register 50: HEX=97, UINT_16=151
 Register 51: HEX=0, UINT_16=0
 Register 52: HEX=0, UINT_16=0
@@ -45,52 +144,67 @@ Register 108: HEX=0, UINT_16=0
 Register 109: HEX=0, UINT_16=0
 Register 111: HEX=0, UINT_16=0
 Register 112: HEX=0, UINT_16=0
-Register 113: HEX=1908, INT_8 LSB=8, INT_8 MSB=25
-Register 114: HEX=300, UINT_8 LSB=0, UINT_8 MSB=3
-Register 116: HEX=8A3D BE, UINT_32=12487229
-Register 200: HEX=1226
-Register 201: HEX=6500
-Register 202: HEX=4E2B
-Register 203: HEX=64B9
-Register 204: HEX=4E2C
-Register 205: HEX=62B9
-Register 206: HEX=4E42
-Register 207: HEX=65B9
-Register 296: HEX=0
-Register 297: HEX=0
 Register 300: HEX=1036, UINT_16=4150
 Register 301: HEX=BB8, UINT_16=3000
 Register 303: HEX=C80, UINT_16=3200
 Register 304: HEX=3E8, UINT_16=1000
-Register 306: HEX=19C8, UINT_16=6600
+Error reading register 306
 Register 307: HEX=E, UINT_16=14
 Register 308: HEX=F, UINT_16=15
 Register 315: HEX=1068, UINT_16=4200
-Register 316: HEX=B54, UINT_16=2900
+Error reading register 316
 Register 317: HEX=3C, UINT_16=60
 Register 318: HEX=14, UINT_16=20
+Register 328: HEX=FFFF, UINT_16=65535
+Register 502: HEX=F2, UINT_16=242
+Register 42: HEX=FFFF8000, INT_16=-32768
+Register 43: HEX=FFFF8000, INT_16=-32768
+Error reading register 48
 Register 319: HEX=3C, INT_16=60
 Register 320: HEX=1, INT_16=1
-Register 328: HEX=FFFF, UINT_16=65535
+Register 32: HEX=A284 BE, UINT_32=12493444
+Error reading register 34
+Register 46: HEX=EDC0 4FA, UINT_32=83553728
+Register 116: HEX=8A3D BE, UINT_32=12487229
+Register 36: HEX=22D1 425F, FLOAT=55.78
+Register 38: HEX=0 0, FLOAT=0.00
+Register 113: HEX=1908, INT_8 LSB=8, INT_8 MSB=25
+Register 114: HEX=300, UINT_8 LSB=0, UINT_8 MSB=3
+Error reading register 200
+Register 201: HEX=6500
+Register 202: HEX=4E2B
+Error reading register 203
+Error reading register 204
+Register 205: HEX=62B9
+Register 206: HEX=4E42
+Error reading register 207
+Register 296: HEX=0
+Register 297: HEX=0
 Register 500: HEX=102
 Register 501: HEX=301
-Register 502: HEX=F2, UINT_16=242
-Register 503: HEX=418
+Error reading register 503
 
-Read 1 values:samples=50, avgTime=42ms, errorCount=3, crcErrorCount=2, timeoutErrorCount=1
-Read 2 values:samples=50, avgTime=2ms, errorCount=8, crcErrorCount=8, timeoutErrorCount=0
-Read 4 values:samples=50, avgTime=82ms, errorCount=13, crcErrorCount=11, timeoutErrorCount=2
-Read 8 values:samples=50, avgTime=163ms, errorCount=9, crcErrorCount=5, timeoutErrorCount=4
-Read 16 values:samples=50, avgTime=205ms, errorCount=10, crcErrorCount=5, timeoutErrorCount=5
-Read 24 values:samples=50, avgTime=47ms, errorCount=10, crcErrorCount=9, timeoutErrorCount=1
-Read 32 values:samples=50, avgTime=88ms, errorCount=35, crcErrorCount=32, timeoutErrorCount=2
-Read 40 values:samples=50, avgTime=2001ms, errorCount=50, crcErrorCount=0, timeoutErrorCount=50
+Read 1 values:samples=50, avgTime=2ms, errorCount=6, crcErrorCount=6, timeoutErrorCount=0
+Read 2 values:samples=50, avgTime=2ms, errorCount=6, crcErrorCount=5, timeoutErrorCount=0
+Read 4 values:samples=50, avgTime=83ms, errorCount=9, crcErrorCount=7, timeoutErrorCount=2
+Read 8 values:samples=50, avgTime=203ms, errorCount=13, crcErrorCount=8, timeoutErrorCount=5
+Read 16 values:samples=50, avgTime=205ms, errorCount=14, crcErrorCount=9, timeoutErrorCount=5
+Read 24 values:samples=50, avgTime=166ms, errorCount=16, crcErrorCount=11, timeoutErrorCount=4
+Read 32 values:samples=50, avgTime=168ms, errorCount=26, crcErrorCount=22, timeoutErrorCount=4
+Read 40 values:samples=50, avgTime=1962ms, errorCount=50, crcErrorCount=0, timeoutErrorCount=49
 
-Read reserved register 45:samples=50, avgTime=2ms, errorCount=9, crcErrorCount=9, timeoutErrorCount=0
-Read reserved register 49:samples=50, avgTime=42ms, errorCount=4, crcErrorCount=2, timeoutErrorCount=1
-Read reserved register 110:samples=50, avgTime=42ms, errorCount=3, crcErrorCount=2, timeoutErrorCount=1
+Read reserved register 45:samples=50, avgTime=2ms, errorCount=4, crcErrorCount=2, timeoutErrorCount=0
+Read reserved register 49:samples=50, avgTime=2ms, errorCount=5, crcErrorCount=5, timeoutErrorCount=0
+Read reserved register 110:samples=50, avgTime=2ms, errorCount=3, crcErrorCount=3, timeoutErrorCount=0
 
-Read 16 values starting at register 0:samples=50, avgTime=125ms, errorCount=13, crcErrorCount=10, timeoutErrorCount=3
-Read 16 values starting at register 16:samples=50, avgTime=85ms, errorCount=5, crcErrorCount=2, timeoutErrorCount=2
+Read 16 values starting at register 0:samples=50, avgTime=125ms, errorCount=15, crcErrorCount=12, timeoutErrorCount=3
+Read 16 values starting at register 16:samples=50, avgTime=46ms, errorCount=8, crcErrorCount=6, timeoutErrorCount=1
+
+Read with an interval of 10ms:samples=50, avgTime=2ms, errorCount=4, crcErrorCount=4, timeoutErrorCount=0
+Read with an interval of 20ms:samples=50, avgTime=1ms, errorCount=2, crcErrorCount=2, timeoutErrorCount=0
+Read with an interval of 50ms:samples=50, avgTime=42ms, errorCount=5, crcErrorCount=4, timeoutErrorCount=1
+Read with an interval of 100ms:samples=50, avgTime=2ms, errorCount=3, crcErrorCount=3, timeoutErrorCount=0
+Read with an interval of 200ms:samples=50, avgTime=2ms, errorCount=8, crcErrorCount=8, timeoutErrorCount=0
+Read with an interval of 400ms:samples=50, avgTime=2ms, errorCount=7, crcErrorCount=6, timeoutErrorCount=0
 
 DONE
