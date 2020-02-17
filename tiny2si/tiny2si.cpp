@@ -15,6 +15,7 @@ void setup() {
   serial_bprintf(buf, "Sketch: modbus_master_sw_serial\n");
 
   init_tinybms();
+  init_sunnyisland();
 
   // Allow the hardware to sort itself out
   delay(2000);
@@ -46,6 +47,8 @@ void loop() {
 //    serial_printf("Min cell voltage: %sV\n", dtostrf(responseData[40] / 1000.0, 2, 2, tmp));
 //    serial_printf("Max cell voltage: %sV\n\n", dtostrf(responseData[41] / 1000.0, 2, 2, tmp));
 
+
+    send_voltage_frame(&battery_voltage);
 
   }
 

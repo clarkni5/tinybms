@@ -3,6 +3,8 @@
 
 #include <stdarg.h>
 
+extern char buf[128];
+
 #define uint32Value(x, y) (x << 16 | y)
 #define floatValue(x) (*(float*)x)
 #define int8LsbValue(x) ((uint8_t)x)
