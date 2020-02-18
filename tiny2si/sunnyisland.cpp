@@ -110,7 +110,7 @@ void init_sunnyisland() {
 
 	while(CAN->begin(CAN_500KBPS, MCP_8MHz) != CAN_OK) {
 		serial_bprintf(buf, "Unable to start CAN bus\n");
-		delay(100);
+		delay(1000);
 	}
 
 }
@@ -118,17 +118,41 @@ void init_sunnyisland() {
 void send_charge_params_frame() {
 
 	uint8_t *frame = make_charge_params_frame(0, 0, 0, 0);
-	CAN->sendExtMsgBuf(SI_CHARGE_PARAMS_FRAME, 0, 8, frame);
+	CAN->sendMsgBuf(SI_CHARGE_PARAMS_FRAME, 0, 8, frame);
 	free(frame);
-	delay(210);
+	delay(CAN_DELAY);
 
 }
 
 void send_voltage_frame(Battery_voltage *voltage) {
 
 	uint8_t *frame = make_voltage_frame((uint16_t)voltage->pack_voltage.fvoltage, 0, 0);
-	CAN->sendExtMsgBuf(SI_VOLTAGE_FRAME, 0, 8, frame);
+	CAN->sendMsgBuf(SI_VOLTAGE_FRAME, 0, 8, frame);
 	free(frame);
-	delay(210);
+	delay(CAN_DELAY);
+
+}
+
+void send_name_frame() {
+
+	CAN->sendMsgBuf(SI_NAME_FRAME, 0, strlen(BMS_NAME), (unsigned char*)BMS_NAME);
+	delay(CAN_DELAY);
+
+}
+
+void send_id_frame(uint16_t batteryCapacity) {
+
+	unsigned char frame[] = { 0x4c, 0x69, 0x04, 0x0f, lowByte(batteryCapacity), highByte(batteryCapacity), 0x11, 0x17 };
+	CAN->sendMsgBuf(SI_ID_FRAME, 0, 8, frame);
+	delay(CAN_DELAY);
+
+}
+
+void send_soc_frame(Battery_soc *soc) {
+
+	uint8_t *frame = make_soc_frame(soc->stateOfCharge, soc->stateOfHealth, soc->stateOfChargeHp);
+	CAN->sendMsgBuf(SI_SOC_FRAME, 0, 6, frame);
+	free(frame);
+	delay(CAN_DELAY);
 
 }

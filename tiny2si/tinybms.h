@@ -29,33 +29,72 @@
 
 #define MAX_CELL_COUNT 16
 
+#define CELL_COUNT_REGISTER 53
+#define PACK_VOLTAGE_REGISTER_0 36
+#define PACK_CURRENT_REGISTER_0 38
+#define MIN_CELL_VOLTAGE_REGISTER 40
+#define MAX_CELL_VOLTAGE_REGISTER 41
+#define MAX_DISCHARGE_CURRENT_REGISTER 102
+#define MAX_CHARGE_CURRENT_REGISTER 103
+#define PACK_CAPACITY_REGISTER 306
+#define PACK_SOC_REGISTER_0 46
+
 extern AltSoftSerial *softSerial;
 extern ModbusMaster *modbus;
 
 typedef struct _battery_voltage {
 
-  uint16_t cell_count;
+	uint16_t cell_voltage[MAX_CELL_COUNT];
 
-  union _cell_voltage {
+	union _pack_voltage {
 
-    float fvoltage[MAX_CELL_COUNT];
-    uint16_t ivoltage[MAX_CELL_COUNT*2];
+		float fvoltage;
+		uint16_t ivoltage[2];
 
-  } cell_voltage;
+	} pack_voltage;
 
-  union _pack_voltage {
+	uint16_t min_cell_voltage;
+	uint16_t max_cell_voltage;
 
-     float fvoltage;
-     uint16_t ivoltage[2];
-
-  } pack_voltage;
-
-  unsigned long last_success;
+	unsigned long last_success;
 
 } Battery_voltage;
 
+typedef struct _battery_current {
+
+	float pack_current;
+	uint16_t max_discharge_current;
+	uint16_t max_charge_current;
+
+	unsigned long last_success;
+
+} Battery_current;
+
+typedef struct _battery_config {
+
+	uint16_t cell_count;
+	uint16_t capacity;
+
+	unsigned long last_success;
+
+} Battery_config;
+
+typedef struct _battery_soc {
+
+	uint16_t stateOfCharge;
+	uint16_t stateOfHealth;
+	uint16_t stateOfChargeHp;
+
+	unsigned long last_success;
+
+} Battery_soc;
+
 void init_tinybms();
-int readRegistersWithRetry(uint8_t idx, uint8_t count, uint16_t *dest, uint8_t retrcnt);
-int load_battery_voltage(struct _battery_voltage *voltage);
+int readRegistersWithRetry(uint8_t idx, uint8_t count, uint16_t *dest,
+		uint8_t retrcnt);
+int load_battery_voltage(Battery_config *config, Battery_voltage *voltage);
+int load_battery_current(Battery_current *current);
+int load_battery_config(Battery_config *config);
+int load_battery_soc(Battery_soc *soc);
 
 #endif

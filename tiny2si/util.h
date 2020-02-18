@@ -3,7 +3,14 @@
 
 #include <stdarg.h>
 
+#define DEBUG 1
 extern char buf[128];
+
+#ifdef DEBUG
+#define DEBUGP(...) do { serial_bprintf(buf, __VA_ARGS__); } while(false)
+#else
+#define DEBUGP(...) do{} while(false)
+#endif
 
 #define uint32Value(x, y) (x << 16 | y)
 #define floatValue(x) (*(float*)x)

@@ -10,10 +10,16 @@
 #define loHi(x,y) ((uint16_t)(y << 8 | x))
 #define leWord(x) ((uint16_t)((x & 0xff << 8) | (x & 0xff00 >> 8)))
 
-#define CAN_PIN 10
+#define CAN_PIN 7
+#define CAN_DELAY 210
 
 #define SI_CHARGE_PARAMS_FRAME 0x351
 #define SI_VOLTAGE_FRAME 0x356
+#define SI_SOC_FRAME 0x355
+#define SI_ID_FRAME 0x35F
+#define SI_NAME_FRAME 0x35E
+
+#define BMS_NAME "TinyBMS"
 
 extern MCP_CAN *CAN;
 
@@ -28,6 +34,9 @@ uint8_t *make_charge_params_frame3(uint16_t finalChargeVoltage, uint16_t maxChar
 
 void init_sunnyisland();
 void send_voltage_frame(Battery_voltage *voltage);
+void send_name_frame();
+void send_id_frame(uint16_t batteryCapacity);
+void send_soc_frame(Battery_soc *soc);
 
 #endif
 
