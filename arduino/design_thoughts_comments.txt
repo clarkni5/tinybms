@@ -62,49 +62,54 @@ Number of cells detected -> register 53
 hardwareVersion -> register 500
 
 
+Faults and warnings
+===================
+Here is the key for the tables below:
+[message 0x35A byte index] binary value // description
+
 Faults
 ======
-[0] 0x01 0b00000001 // General (F920 XA01 General)
-[0] 0x04 0b00000100 // Battery overvoltage (F921 XA02 DcHiVolt)
-[0] 0x10 0b00010000 // Battery undervoltage (F922 XA03 DcLoVolt)
-[0] 0x40 0b01000000 // Battery overtemperature (F923 XA04 DcHiTmp)
+[0] 0b00000001 // General (F920 XA01 General)
+[0] 0b00000100 // Battery overvoltage (F921 XA02 DcHiVolt)
+[0] 0b00010000 // Battery undervoltage (F922 XA03 DcLoVolt)
+[0] 0b01000000 // Battery overtemperature (F923 XA04 DcHiTmp)
 
-[1] 0x01 0b00000001 // Battery undertemperature (F924 XA05 DcLoTmp)
-[1] 0x04 0b00000100 // Battery overtemperature in charge mode (F925 XA06 DcHiTmpC)
-[1] 0x10 0b00010000 // Battery undertemperature in charge mode (F926 XA07 DcLoTmpC)
-[1] 0x40 0b01000000 // Battery discharge current too high (F927 XA08 DcHiCur)
+[1] 0b00000001 // Battery undertemperature (F924 XA05 DcLoTmp)
+[1] 0b00000100 // Battery overtemperature in charge mode (F925 XA06 DcHiTmpC)
+[1] 0b00010000 // Battery undertemperature in charge mode (F926 XA07 DcLoTmpC)
+[1] 0b01000000 // Battery discharge current too high (F927 XA08 DcHiCur)
 
-[2] 0x01 0b00000001 // Battery charging current too high (F928 XA09 DcHiChgCur)
-[2] 0x04 0b00000100 // Contactor (F929 XA10 Contact)
-[2] 0x10 0b00010000 // Short circuit (F930 XA11 Short)
-[2] 0x40 0b01000000 // Internal error in battery management (F931 XA12 BMS)
+[2] 0b00000001 // Battery charging current too high (F928 XA09 DcHiChgCur)
+[2] 0b00000100 // Contactor (F929 XA10 Contact)
+[2] 0b00010000 // Short circuit (F930 XA11 Short)
+[2] 0b01000000 // Internal error in battery management (F931 XA12 BMS)
 
-[3] 0x01 0b00000001 // Different state of charge of the battery cells (F932 XA13 CellBal)
-[3] 0x04 0b00000100 // Not used (F933 XA14)
-[3] 0x10 0b00010000 // Not used (F934 XA15)
-[3] 0x40 0b01000000 // Error in the generator (F935 XA16 Generator)
+[3] 0b00000001 // Different state of charge of the battery cells (F932 XA13 CellBal)
+[3] 0b00000100 // Not used (F933 XA14)
+[3] 0b00010000 // Not used (F934 XA15)
+[3] 0b01000000 // Error in the generator (F935 XA16 Generator)
 
 Warnings
 ========
-[0] 0x01 0b00000001 // General (W936 XW01 General)
-[0] 0x04 0b00000100 // Battery overvoltage (W937 XW02 DcHiVolt)
-[0] 0x10 0b00010000 // Battery undervoltage (W938 XW03 DcLoVolt)
-[0] 0x40 0b01000000 // Battery overtemperature (W939 XW04 DcHiTmp)
+[4] 0b00000001 // General (W936 XW01 General)
+[4] 0b00000100 // Battery overvoltage (W937 XW02 DcHiVolt)
+[4] 0b00010000 // Battery undervoltage (W938 XW03 DcLoVolt)
+[4] 0b01000000 // Battery overtemperature (W939 XW04 DcHiTmp)
 
-[1] 0x01 0b00000001 // Battery undertemperature (W940 XW05 DcLoTmp)
-[1] 0x04 0b00000100 // Battery overtemperature in charge mode (W941 XW06 DcHiTmpC)
-[1] 0x10 0b00010000 // Battery undertemperature in charge mode (W942 XW07 DcLoTmpC)
-[1] 0x40 0b01000000 // Battery discharge current too high (W943 XW08 DcHiCur)
+[5] 0b00000001 // Battery undertemperature (W940 XW05 DcLoTmp)
+[5] 0b00000100 // Battery overtemperature in charge mode (W941 XW06 DcHiTmpC)
+[5] 0b00010000 // Battery undertemperature in charge mode (W942 XW07 DcLoTmpC)
+[5] 0b01000000 // Battery discharge current too high (W943 XW08 DcHiCur)
 
-[2] 0x01 0b00000001 // Battery charging current too high (W944 XW09 DcHiChgCur)
-[2] 0x04 0b00000100 // Contactor (W945 XW10 Contact)
-[2] 0x10 0b00010000 // Short circuit (W946 XW11 Short)
-[2] 0x40 0b01000000 // Internal error in battery management (W947 XW12 BMS)
+[6] 0b00000001 // Battery charging current too high (W944 XW09 DcHiChgCur)
+[6] 0b00000100 // Contactor (W945 XW10 Contact)
+[6] 0b00010000 // Short circuit (W946 XW11 Short)
+[6] 0b01000000 // Internal error in battery management (W947 XW12 BMS)
 
-[3] 0x01 0b00000001 // Different state of charge of the battery cells (W948 XW13 CellBal)
-[3] 0x04 0b00000100 // Not used (W949 XW14)
-[3] 0x10 0b00010000 // Not used (W950 XW15)
-[3] 0x40 0b01000000 // Error in the generator (W951 XW16 Generator)
+[7] 0b00000001 // Different state of charge of the battery cells (W948 XW13 CellBal)
+[7] 0b00000100 // Not used (W949 XW14)
+[7] 0b00010000 // Not used (W950 XW15)
+[7] 0b01000000 // Error in the generator (W951 XW16 Generator)
 
 
 Interesting flow-control pattern
