@@ -8,7 +8,8 @@
 #include "tinybms.h"
 
 #define loHi(x,y) ((uint16_t)(y << 8 | x))
-#define leWord(x) ((uint16_t)((x & 0xff << 8) | (x & 0xff00 >> 8)))
+// Arduino is LE, so this is a noop
+#define leWord(x) (x)
 
 #define CAN_PIN 7
 #define CAN_DELAY 210

@@ -3,7 +3,7 @@
 
 #include <stdarg.h>
 
-#define DEBUG 1
+#undef DEBUG
 extern char buf[128];
 
 #ifdef DEBUG
@@ -21,5 +21,6 @@ extern char buf[128];
 
 void serial_printf(const char *fmt, ...);
 void serial_bprintf(char *buf, const char *fmt, ...);
+int freeMemory();
 
 #endif

@@ -38,6 +38,7 @@
 #define MAX_CHARGE_CURRENT_REGISTER 103
 #define PACK_CAPACITY_REGISTER 306
 #define PACK_SOC_REGISTER_0 46
+#define PACK_SOC2_REGISTER 328
 
 extern AltSoftSerial *softSerial;
 extern ModbusMaster *modbus;
@@ -83,18 +84,20 @@ typedef struct _battery_soc {
 
 	uint16_t stateOfCharge;
 	uint16_t stateOfHealth;
-	uint16_t stateOfChargeHp;
+	uint32_t stateOfChargeHp;
 
 	unsigned long last_success;
 
 } Battery_soc;
 
 void init_tinybms();
-int readRegistersWithRetry(uint8_t idx, uint8_t count, uint16_t *dest,
+void reset_tinybms();
+int readRegistersWithRetry(uint16_t idx, uint16_t count, uint16_t *dest,
 		uint8_t retrcnt);
 int load_battery_voltage(Battery_config *config, Battery_voltage *voltage);
 int load_battery_current(Battery_current *current);
 int load_battery_config(Battery_config *config);
 int load_battery_soc(Battery_soc *soc);
+int load_battery_soc2(Battery_soc *soc);
 
 #endif

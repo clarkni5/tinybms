@@ -19,9 +19,10 @@ void setup() {
 	serial_bprintf(buf, "Starting tiny2si\r\n");
 
 	init_tinybms();
+//	reset_tinybms();
 	init_sunnyisland();
 
-	// Allow the hardware to sort itself out
+// Allow the hardware to sort itself out
 	delay(2000);
 	serial_bprintf(buf, "Init OK\r\n");
 }
@@ -32,6 +33,7 @@ void loop() {
 	char tmp[10];
 
 	// Don't proceed if can't determine cell count
+
 	if (load_battery_config(&battery_config) < 0) {
 		delay(1000);
 		return;
@@ -60,9 +62,9 @@ void loop() {
 		serial_bprintf(buf, "Pack voltage: %sV\r\n",
 				dtostrf(battery_voltage.pack_voltage.fvoltage, 2, 2, tmp));
 
-		serial_printf("Min cell voltage: %sV\r\n",
+		serial_bprintf(buf, "Min cell voltage: %sV\r\n",
 				dtostrf(battery_voltage.min_cell_voltage / 1000.0, 2, 2, tmp));
-		serial_printf("Max cell voltage: %sV\r\n",
+		serial_bprintf(buf, "Max cell voltage: %sV\r\n",
 				dtostrf(battery_voltage.max_cell_voltage / 1000.0, 2, 2, tmp));
 
 		send_voltage_frame(&battery_voltage);
@@ -88,14 +90,16 @@ void loop() {
 	if (load_battery_soc(&battery_soc) > 0
 			|| battery_soc.last_success < millis() - 60000) {
 
-		serial_bprintf(buf, "Pack SOC: %u%%\r\n",
-				battery_soc.stateOfCharge);
+		serial_bprintf(buf, "Pack SOC: %u%%\r\n", battery_soc.stateOfCharge);
+		serial_bprintf(buf, "Pack SOC hp: %lu%%\r\n", battery_soc.stateOfChargeHp);
 
 		send_soc_frame(&battery_soc);
 
 		serial_bprintf(buf, "\r\n");
 
 	}
+
+	serial_bprintf(buf, "Free memory: %u\r\n", freeMemory());
 
 	delay(POLL_INTERVAL);
 
