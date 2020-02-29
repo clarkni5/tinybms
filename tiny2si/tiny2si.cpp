@@ -12,6 +12,7 @@ Battery_config battery_config;
 Battery_voltage battery_voltage;
 Battery_current battery_current;
 Battery_soc battery_soc;
+Battery_safety_params battery_safety;
 
 char buf[128];
 
@@ -35,6 +36,7 @@ void load_battery_data() {
 	load_battery_voltage(&battery_config, &battery_voltage);
 	load_battery_current(&battery_current);
 	load_battery_soc(&battery_soc);
+	load_battery_safety(&battery_safety);
 
 }
 
@@ -81,8 +83,16 @@ void dump_battery_data() {
 
 	print_age("soc", battery_current.last_success);
 
-	serial_bprintf(buf, "Pack SOC: %u%%\r\n", battery_soc.stateOfCharge);
+	serial_bprintf(buf, "Pack SOC: %hu%%\r\n", battery_soc.stateOfCharge);
 	serial_bprintf(buf, "Pack SOC hp: %lu%%\r\n", battery_soc.stateOfChargeHp);
+	serial_bprintf(buf, "Pack SOH : %hu%%\r\n", battery_soc.stateOfHealth);
+
+	serial_bprintf(buf, "\r\n");
+
+	print_age("safety", battery_safety.last_success);
+
+	serial_bprintf(buf, "Cell fully charged: %3.2fV\r\n", battery_safety.cell_charged_v / 1000);
+	serial_bprintf(buf, "Cell fully discharged: %3.2fV\r\n", battery_safety.cell_discharged_v / 1000);
 
 	serial_bprintf(buf, "\r\n");
 
@@ -99,6 +109,14 @@ void send_battery_data() {
 
 void send_battery_alerts() {
 
+	if(battery_voltage.min_cell_voltage < battery_safety.cell_discharged_v) {
+		serial_bprintf(buf, "ALERT: undervoltage\r\n");
+	}
+
+	if(battery_voltage.max_cell_voltage > battery_safety.cell_charged_v) {
+		serial_bprintf(buf, "ALERT: overvoltage\r\n");
+	}
+
 }
 
 void loop() {
@@ -113,6 +131,7 @@ void loop() {
 
 	}
 
+	serial_bprintf(buf, "Uptime: %us\r\n", millis() / 1000);
 	serial_bprintf(buf, "Free memory: %u\r\n", freeMemory());
 
 	delay(POLL_INTERVAL);

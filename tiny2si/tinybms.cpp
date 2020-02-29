@@ -304,3 +304,28 @@ int load_battery_soc2(Battery_soc *soc) {
 	return result;
 
 }
+
+int load_battery_safety(Battery_safety_params *safp) {
+
+	int result = 1;
+
+	if (readRegistersWithRetry(CELL_CHARGED_VOLTAGE_REGISTER, 1,
+			&safp->cell_charged_v,
+			MODBUS_RETRY_COUNT) <= 0)
+		result = -1;
+
+	delay(MODBUS_INTERVAL);
+
+	if (readRegistersWithRetry(CELL_DISCHARGED_VOLTAGE_REGISTER, 1,
+			&safp->cell_charged_v,
+			MODBUS_RETRY_COUNT) <= 0)
+		result = -1;
+
+	if (result == 1)
+		safp->last_success = millis();
+
+	delay(MODBUS_INTERVAL);
+
+	return result;
+
+}

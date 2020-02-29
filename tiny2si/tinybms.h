@@ -40,7 +40,19 @@ extern HardwareSerial Serial2;
 #define PACK_SOC_REGISTER_0 46
 #define PACK_SOC2_REGISTER 328
 
+#define CELL_CHARGED_VOLTAGE_REGISTER 300
+#define CELL_DISCHARGED_VOLTAGE_REGISTER 301
+
 extern ModbusMaster *modbus;
+
+typedef struct _battery_safety_params {
+
+	uint16_t cell_charged_v;
+	uint16_t cell_discharged_v;
+
+	unsigned long last_success;
+
+} Battery_safety_params;
 
 typedef struct _battery_voltage {
 
@@ -82,7 +94,7 @@ typedef struct _battery_config {
 typedef struct _battery_soc {
 
 	uint16_t stateOfCharge;
-	uint16_t stateOfHealth;
+	uint16_t stateOfHealth = 80;
 	uint32_t stateOfChargeHp;
 
 	unsigned long last_success;
@@ -98,6 +110,7 @@ int load_battery_current(Battery_current *current);
 int load_battery_config(Battery_config *config);
 int load_battery_soc(Battery_soc *soc);
 int load_battery_soc2(Battery_soc *soc);
+int load_battery_safety(Battery_safety_params *safp);
 
 int read_register(uint16_t idx, uint8_t count, uint16_t *dest);
 
