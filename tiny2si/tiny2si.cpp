@@ -38,36 +38,31 @@ void load_battery_data() {
 
 void dump_battery_data() {
 
-	char tmp[10];
 	uint8_t k;
 
-	serial_bprintf(buf, "%u configured cells\r\n",
-			battery_config.cell_count);
-	serial_bprintf(buf, "capacity %uAh\r\n", battery_config.capacity / 100);
+	serial_bprintf(buf, "%u configured cells\r\n", battery_config.cell_count);
+	serial_bprintf(buf, "capacity %uAh\r\n", battery_config.capacity);
 	serial_bprintf(buf, "voltage data is %us old\r\n",
 			(millis() - battery_voltage.last_success) / 1000);
 
 	for (k = 0; k < battery_config.cell_count; k++) {
-		serial_bprintf(buf, "Cell %hhu voltage: %sV\r\n",
+		serial_bprintf(buf, "Cell %hhu voltage: %3.2fV\r\n",
 				battery_config.cell_count - k,
-				dtostrf(battery_voltage.cell_voltage[k] / 10000.0, 2, 2,
-						tmp));
+				battery_voltage.cell_voltage[k] / 10000.0);
 	}
 
-	serial_bprintf(buf, "Pack voltage: %sV\r\n",
-			dtostrf(battery_voltage.pack_voltage.fvoltage, 2, 2, tmp));
+	serial_bprintf(buf, "Pack voltage: %3.2fV\r\n",
+			battery_voltage.pack_voltage.fvoltage);
 
-	serial_bprintf(buf, "Min cell voltage: %sV\r\n",
-			dtostrf(battery_voltage.min_cell_voltage / 1000.0, 2, 2, tmp));
-	serial_bprintf(buf, "Max cell voltage: %sV\r\n",
-			dtostrf(battery_voltage.max_cell_voltage / 1000.0, 2, 2, tmp));
-
-	send_voltage_frame(&battery_voltage);
+	serial_bprintf(buf, "Min cell voltage: %3.2fV\r\n",
+			battery_voltage.min_cell_voltage / 1000.0);
+	serial_bprintf(buf, "Max cell voltage: %3.2fV\r\n",
+			battery_voltage.max_cell_voltage / 1000.0);
 
 	serial_bprintf(buf, "\r\n");
 
-	serial_bprintf(buf, "Pack current: %sA\r\n",
-			dtostrf(battery_current.pack_current, 2, 2, tmp));
+	serial_bprintf(buf, "Pack current: %3.2fA\r\n",
+			battery_current.pack_current);
 	serial_bprintf(buf, "Max discharge current: %uA\r\n",
 			battery_current.max_discharge_current);
 	serial_bprintf(buf, "Max charge current: %uA\r\n",
@@ -78,7 +73,6 @@ void dump_battery_data() {
 	serial_bprintf(buf, "Pack SOC: %u%%\r\n", battery_soc.stateOfCharge);
 	serial_bprintf(buf, "Pack SOC hp: %lu%%\r\n", battery_soc.stateOfChargeHp);
 
-
 	serial_bprintf(buf, "\r\n");
 
 }
@@ -88,6 +82,7 @@ void send_battery_data() {
 	send_name_frame();
 	send_id_frame(battery_config.capacity);
 	send_soc_frame(&battery_soc);
+	send_voltage_frame(&battery_voltage);
 
 }
 
@@ -97,10 +92,9 @@ void send_battery_alerts() {
 
 void loop() {
 
-
 	load_battery_data();
 
-	if(battery_config.cell_count > 0) {
+	if (battery_config.cell_count > 0) {
 
 		dump_battery_data();
 		send_battery_data();

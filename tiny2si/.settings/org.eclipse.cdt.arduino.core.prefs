@@ -1,2 +1,2 @@
 eclipse.preferences.version=1
-libraries=["ModbusMaster",{"package"\:"arduino","platform"\:"avr","library"\:"SPI"},"AltSoftSerial","CAN-BUS Shield"]
+libraries=["ModbusMaster",{"package"\:"arduino","platform"\:"avr","library"\:"SPI"},"CAN-BUS Shield"]

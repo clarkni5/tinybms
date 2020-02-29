@@ -255,6 +255,8 @@ int load_battery_config(Battery_config *config) {
 			<= 0) {
 		DEBUGP("Couldn't load pack capacity\r\n");
 		result = -1;
+	} else {
+		config->capacity /= 100;
 	}
 
 	if (result == 1)

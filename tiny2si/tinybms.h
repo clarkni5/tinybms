@@ -16,9 +16,10 @@
 
 #include <Arduino.h>
 #include <ModbusMaster.h>
-#include <HardwareSerial.h>
 
+extern HardwareSerial Serial2;
 #define serial (&Serial2)
+
 #define MODBUS_BAUD 115200
 
 #define TINYBMS_DEVICE_ID 0xAA
