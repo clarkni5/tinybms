@@ -27,75 +27,84 @@ void setup() {
 	serial_bprintf(buf, "Init OK\r\n");
 }
 
-void loop() {
+void load_battery_data() {
 
-	uint8_t k;
+	load_battery_config(&battery_config);
+	load_battery_voltage(&battery_config, &battery_voltage);
+	load_battery_current(&battery_current);
+	load_battery_soc(&battery_soc);
+
+}
+
+void dump_battery_data() {
+
 	char tmp[10];
+	uint8_t k;
 
-	// Don't proceed if can't determine cell count
+	serial_bprintf(buf, "%u configured cells\r\n",
+			battery_config.cell_count);
+	serial_bprintf(buf, "capacity %uAh\r\n", battery_config.capacity / 100);
+	serial_bprintf(buf, "voltage data is %us old\r\n",
+			(millis() - battery_voltage.last_success) / 1000);
 
-	if (load_battery_config(&battery_config) < 0) {
-		delay(1000);
-		return;
-	} else {
-		serial_bprintf(buf, "%u configured cells\r\n",
-				battery_config.cell_count);
-		serial_bprintf(buf, "capacity %uAh\r\n", battery_config.capacity / 100);
+	for (k = 0; k < battery_config.cell_count; k++) {
+		serial_bprintf(buf, "Cell %hhu voltage: %sV\r\n",
+				battery_config.cell_count - k,
+				dtostrf(battery_voltage.cell_voltage[k] / 10000.0, 2, 2,
+						tmp));
 	}
+
+	serial_bprintf(buf, "Pack voltage: %sV\r\n",
+			dtostrf(battery_voltage.pack_voltage.fvoltage, 2, 2, tmp));
+
+	serial_bprintf(buf, "Min cell voltage: %sV\r\n",
+			dtostrf(battery_voltage.min_cell_voltage / 1000.0, 2, 2, tmp));
+	serial_bprintf(buf, "Max cell voltage: %sV\r\n",
+			dtostrf(battery_voltage.max_cell_voltage / 1000.0, 2, 2, tmp));
+
+	send_voltage_frame(&battery_voltage);
+
+	serial_bprintf(buf, "\r\n");
+
+	serial_bprintf(buf, "Pack current: %sA\r\n",
+			dtostrf(battery_current.pack_current, 2, 2, tmp));
+	serial_bprintf(buf, "Max discharge current: %uA\r\n",
+			battery_current.max_discharge_current);
+	serial_bprintf(buf, "Max charge current: %uA\r\n",
+			battery_current.max_charge_current);
+
+	serial_bprintf(buf, "\r\n");
+
+	serial_bprintf(buf, "Pack SOC: %u%%\r\n", battery_soc.stateOfCharge);
+	serial_bprintf(buf, "Pack SOC hp: %lu%%\r\n", battery_soc.stateOfChargeHp);
+
+
+	serial_bprintf(buf, "\r\n");
+
+}
+
+void send_battery_data() {
 
 	send_name_frame();
 	send_id_frame(battery_config.capacity);
+	send_soc_frame(&battery_soc);
 
-	if (load_battery_voltage(&battery_config, &battery_voltage) > 0
-			|| battery_voltage.last_success < millis() - 60000) {
+}
 
-		serial_bprintf(buf, "voltage data is %us old\r\n",
-				(millis() - battery_voltage.last_success) / 1000);
+void send_battery_alerts() {
 
-		for (k = 0; k < battery_config.cell_count; k++) {
-			serial_bprintf(buf, "Cell %hhu voltage: %sV\r\n",
-					battery_config.cell_count - k,
-					dtostrf(battery_voltage.cell_voltage[k] / 10000.0, 2, 2,
-							tmp));
-		}
+}
 
-		serial_bprintf(buf, "Pack voltage: %sV\r\n",
-				dtostrf(battery_voltage.pack_voltage.fvoltage, 2, 2, tmp));
+void loop() {
 
-		serial_bprintf(buf, "Min cell voltage: %sV\r\n",
-				dtostrf(battery_voltage.min_cell_voltage / 1000.0, 2, 2, tmp));
-		serial_bprintf(buf, "Max cell voltage: %sV\r\n",
-				dtostrf(battery_voltage.max_cell_voltage / 1000.0, 2, 2, tmp));
 
-		send_voltage_frame(&battery_voltage);
+	load_battery_data();
 
-		serial_bprintf(buf, "\r\n");
+	if(battery_config.cell_count > 0) {
 
-	}
-
-	if (load_battery_current(&battery_current) > 0
-			|| battery_voltage.last_success < millis() - 60000) {
-
-		serial_bprintf(buf, "Pack current: %sA\r\n",
-				dtostrf(battery_current.pack_current, 2, 2, tmp));
-		serial_bprintf(buf, "Max discharge current: %uA\r\n",
-				battery_current.max_discharge_current);
-		serial_bprintf(buf, "Max charge current: %uA\r\n",
-				battery_current.max_charge_current);
-
-		serial_bprintf(buf, "\r\n");
-
-	}
-
-	if (load_battery_soc(&battery_soc) > 0
-			|| battery_soc.last_success < millis() - 60000) {
-
-		serial_bprintf(buf, "Pack SOC: %u%%\r\n", battery_soc.stateOfCharge);
-		serial_bprintf(buf, "Pack SOC hp: %lu%%\r\n", battery_soc.stateOfChargeHp);
-
-		send_soc_frame(&battery_soc);
-
-		serial_bprintf(buf, "\r\n");
+		dump_battery_data();
+		send_battery_data();
+		send_battery_alerts();
 
 	}
 
