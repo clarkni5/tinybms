@@ -1,66 +1,31 @@
 Design ideas, thoughts, and comments
 ====================================
 
-Requesting modbus data from the Tiny feels slow. The modbus protocol allows 
-you to request up to 125 holding registers in a single request, but I started 
-hitting timeouts and more frequent checksum failures when requesting more than 
-~20 registers from the Tiny. This may also be a result of using SoftwareSerial.
+Modbus over software serial does work with the Arduino Uno, but using the
+hardware serial is much faster and very reliable.
 
-TODO: Get some metrics on how long it takes to request modbus data and the
-frequency of timeouts or checksum failures.
+TODO: Figure out a software serial solution for debugging.
 
 Per the documentation for REC BMS and Elithion, we should plan to send CAN bus 
 messages to the Sunny every 2 seconds. If I am reading it correctly, the REC 
 BMS documentation specifies a delay of 210ms between CAN messages. This leaves 
-~740ms to get the modbus data from the Tiny.
+~740ms to get and process the data.
 
-TODO: Does a shorter interval between CAN bus messages, say 100ms, introduce 
-any problems?
+The Sunny Island will throw a fault (F952 ExtBMSTimeout) and go into standby mode if it has not received CAN bus messages for 60 seconds. Once communication is restored, it will automatically auto-start the inverter.
 
-TODO: Do all CAN bus messages need to be sent on every interval?
+All fault flags will cause the Sunny Island to go into standby mode and shows the fault on the display. The inverter must be manually started even if the fault flag has cleared. You can start the inverter with the fault flag set, but any new fault flag will cause the Sunny Island to go into stanby mode.
 
-TODO: What is the longest interval between CAN messages that the Sunny will
-tolerate?
+Warning flags will show an exclamation mark (!) on the main display, but the actual warning is only visible from the menu (410# Failures Current).
 
-On every measurement cycle, we should send CAN messages to the Sunny. On a less
-frequent cadence, I would like to send data over the network to MQTT.
-
-Because of the limited time for each measurement cycle and the time it takes to
-request data from the Tiny, we may need request subsets of the data with each
-cycle.
-
-I am thinking about breaking the data down into categories based on priority.
-- Essential: This data is required on every measurement cycle (e.g. batteryVoltage)
-- Frequent: This data may not change but is needed by the Sunny (e.g. finalChargeVoltage)
-- Interesting: This data may change but is not needed by the Sunny (e.g. cell voltages)
-- Infrequent: This data will rarely change (e.g. number of cells)
+See battery capacity calculation, page 108
 
 Loop
-    Get essential data from the Tiny
-    Get data from one of these groups:
-        Frequent group A (every 15 loops)
-        Frequent group B
-        Interesting group A (every 30 loops)
-        Interesting group B
-        Interesting group C
-        Interesting group D
-        Infrequent group A (every 150 loops)
+    Get / update data from the Tiny
+    Keep track of communication errors; too many errors should trigger a fault
     Send data to the Sunny
-    send data over the network to MQTT
+    Periodically send data over the network to MQTT broker
 
-TODO: Confirm the possible alerts that the Sunny will respond to.
     
-Alerts
-======
-highTemperatureAlert
-lowCellVoltageAlert
-highCellVoltageAlert
-overCurrentAlert
-lowTempAlert
-groundIsolationAlert
-contactorFaultAlert
-chargeOverCurrentAlert
-
 Essential data
 ==============
 batteryVoltage -> register [36,37]
@@ -70,8 +35,6 @@ stateOfChargeHighPrecision -> register [46,47]
 batteryTemp -> register 42, 43, 48 (BMS temp)
 BMS status -> register 50
 
-Frequent data
-=============
 finalChargeVoltage -> register 300
 finalDischargeVoltage -> register 301
 Charge finished current -> register 304
@@ -99,13 +62,61 @@ Number of cells detected -> register 53
 hardwareVersion -> register 500
 
 
+Faults and warnings
+===================
+Here is the key for the tables below:
+[message 0x35A byte index] binary value // description
+
+Faults
+======
+[0] 0b00000001 // General (F920 XA01 General)
+[0] 0b00000100 // Battery overvoltage (F921 XA02 DcHiVolt)
+[0] 0b00010000 // Battery undervoltage (F922 XA03 DcLoVolt)
+[0] 0b01000000 // Battery overtemperature (F923 XA04 DcHiTmp)
+
+[1] 0b00000001 // Battery undertemperature (F924 XA05 DcLoTmp)
+[1] 0b00000100 // Battery overtemperature in charge mode (F925 XA06 DcHiTmpC)
+[1] 0b00010000 // Battery undertemperature in charge mode (F926 XA07 DcLoTmpC)
+[1] 0b01000000 // Battery discharge current too high (F927 XA08 DcHiCur)
+
+[2] 0b00000001 // Battery charging current too high (F928 XA09 DcHiChgCur)
+[2] 0b00000100 // Contactor (F929 XA10 Contact)
+[2] 0b00010000 // Short circuit (F930 XA11 Short)
+[2] 0b01000000 // Internal error in battery management (F931 XA12 BMS)
+
+[3] 0b00000001 // Different state of charge of the battery cells (F932 XA13 CellBal)
+[3] 0b00000100 // Not used (F933 XA14)
+[3] 0b00010000 // Not used (F934 XA15)
+[3] 0b01000000 // Error in the generator (F935 XA16 Generator)
+
+Warnings
+========
+[4] 0b00000001 // General (W936 XW01 General)
+[4] 0b00000100 // Battery overvoltage (W937 XW02 DcHiVolt)
+[4] 0b00010000 // Battery undervoltage (W938 XW03 DcLoVolt)
+[4] 0b01000000 // Battery overtemperature (W939 XW04 DcHiTmp)
+
+[5] 0b00000001 // Battery undertemperature (W940 XW05 DcLoTmp)
+[5] 0b00000100 // Battery overtemperature in charge mode (W941 XW06 DcHiTmpC)
+[5] 0b00010000 // Battery undertemperature in charge mode (W942 XW07 DcLoTmpC)
+[5] 0b01000000 // Battery discharge current too high (W943 XW08 DcHiCur)
+
+[6] 0b00000001 // Battery charging current too high (W944 XW09 DcHiChgCur)
+[6] 0b00000100 // Contactor (W945 XW10 Contact)
+[6] 0b00010000 // Short circuit (W946 XW11 Short)
+[6] 0b01000000 // Internal error in battery management (W947 XW12 BMS)
+
+[7] 0b00000001 // Different state of charge of the battery cells (W948 XW13 CellBal)
+[7] 0b00000100 // Not used (W949 XW14)
+[7] 0b00010000 // Not used (W950 XW15)
+[7] 0b01000000 // Error in the generator (W951 XW16 Generator)
+
 
 Interesting flow-control pattern
 ================================
 
 This pattern is used in the ModbusRtu library examples. It allows the loop to 
-frequently return control back to the system, which I suspect is helpful when 
-using things like interrupts.
+frequently return control back to the system.
 
 ---
 
