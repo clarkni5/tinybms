@@ -189,13 +189,13 @@ int load_battery_voltage(Battery_config *config, Battery_voltage *voltage) {
 	delay(MODBUS_INTERVAL);
 
 	if (readRegistersWithRetry(MIN_CELL_VOLTAGE_REGISTER, 1,
-			&voltage->min_cell_voltage, MODBUS_RETRY_COUNT) >= 0)
+			&voltage->min_cell_voltage, MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
 
 	delay(MODBUS_INTERVAL);
 
 	if (readRegistersWithRetry(MAX_CELL_VOLTAGE_REGISTER, 1,
-			&voltage->max_cell_voltage, MODBUS_RETRY_COUNT) >= 0)
+			&voltage->max_cell_voltage, MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
 
 	if (result == 1)

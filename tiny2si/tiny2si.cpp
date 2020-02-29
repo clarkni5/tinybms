@@ -6,6 +6,8 @@
 #define SERIAL_BAUD 9600
 #define POLL_INTERVAL 10000
 
+#define print_age(x,y) 	(serial_bprintf(buf, "%s data is %us old\r\n", x, (millis() - y) / 1000))
+
 Battery_config battery_config;
 Battery_voltage battery_voltage;
 Battery_current battery_current;
@@ -39,17 +41,22 @@ void load_battery_data() {
 void dump_battery_data() {
 
 	uint8_t k;
+	char cls[] = { 27, '[', '2', 'J', 27, '[', 'H', 0 };
+
+	serial_bprintf(buf, cls);
+
+	print_age("config", battery_config.last_success);
 
 	serial_bprintf(buf, "%u configured cells\r\n", battery_config.cell_count);
 	serial_bprintf(buf, "capacity %uAh\r\n", battery_config.capacity);
-	serial_bprintf(buf, "voltage data is %us old\r\n",
-			(millis() - battery_voltage.last_success) / 1000);
 
 	for (k = 0; k < battery_config.cell_count; k++) {
 		serial_bprintf(buf, "Cell %hhu voltage: %3.2fV\r\n",
 				battery_config.cell_count - k,
 				battery_voltage.cell_voltage[k] / 10000.0);
 	}
+
+	print_age("voltage", battery_voltage.last_success);
 
 	serial_bprintf(buf, "Pack voltage: %3.2fV\r\n",
 			battery_voltage.pack_voltage.fvoltage);
@@ -61,6 +68,8 @@ void dump_battery_data() {
 
 	serial_bprintf(buf, "\r\n");
 
+	print_age("current", battery_current.last_success);
+
 	serial_bprintf(buf, "Pack current: %3.2fA\r\n",
 			battery_current.pack_current);
 	serial_bprintf(buf, "Max discharge current: %uA\r\n",
@@ -69,6 +78,8 @@ void dump_battery_data() {
 			battery_current.max_charge_current);
 
 	serial_bprintf(buf, "\r\n");
+
+	print_age("soc", battery_current.last_success);
 
 	serial_bprintf(buf, "Pack SOC: %u%%\r\n", battery_soc.stateOfCharge);
 	serial_bprintf(buf, "Pack SOC hp: %lu%%\r\n", battery_soc.stateOfChargeHp);
