@@ -1,10 +1,8 @@
 #include "tinybms.h"
 #include "util.h"
 
-AltSoftSerial *softSerial;
 ModbusMaster *modbus;
 
-/*
 const static uint16_t crcTable[256] = { 0X0000, 0XC0C1, 0XC181, 0X0140, 0XC301,
 		0X03C0, 0X0280, 0XC241, 0XC601, 0X06C0, 0X0780, 0XC741, 0X0500, 0XC5C1,
 		0XC481, 0X0440, 0XCC01, 0X0CC0, 0X0D80, 0XCD41, 0X0F00, 0XCFC1, 0XCE81,
@@ -45,15 +43,14 @@ uint16_t CRC16(const uint8_t *data, uint16_t length) {
 	}
 	return crcWord;
 }
-*/
+
 void init_tinybms() {
 
-	softSerial = new AltSoftSerial(MODBUS_RX_PIN, MODBUS_TX_PIN);
 	modbus = new ModbusMaster();
 
 	// Init the modbus interface
-	softSerial->begin(MODBUS_BAUD);
-	modbus->begin(TINYBMS_DEVICE_ID, *softSerial);
+	serial->begin(MODBUS_BAUD);
+	modbus->begin(TINYBMS_DEVICE_ID, *serial);
 
 }
 
@@ -61,14 +58,87 @@ void reset_tinybms() {
 
 	uint8_t reset_frame[] = { 0xaa, 0x02, 0x05, 0x90, 0x83 }; // crc is pre-calculated
 	/*
-	uint16_t crc = CRC16(reset_frame, 3);
+	 uint16_t crc = CRC16(reset_frame, 3);
 
-	reset_frame[3] = lowByte(crc);
-	reset_frame[4] = highByte(crc);
-	*/
-	softSerial->write(reset_frame, sizeof(reset_frame));
-	softSerial->flush();
+	 reset_frame[3] = lowByte(crc);
+	 reset_frame[4] = highByte(crc);
+	 */
+	serial->write(reset_frame, sizeof(reset_frame));
+	serial->flush();
 	delay(MODBUS_INTERVAL);
+
+}
+
+int read_register(uint16_t idx, uint8_t count, uint16_t *dest) {
+
+	int result = 1;
+	uint8_t request_frame[] = { 0xaa, 0x07, count, lowByte(idx), highByte(idx),
+			0, 0 };
+	uint8_t response_frame[7];
+
+	uint16_t crc = CRC16(request_frame, 5);
+	request_frame[5] = lowByte(crc);
+	request_frame[6] = highByte(crc);
+
+	// flush input
+	while (serial->available() > 0)
+		serial->read();
+
+	serial->write(request_frame, sizeof(request_frame));
+	serial->flush();
+
+	delay(MODBUS_INTERVAL);
+
+	while (serial->available() < 2) {
+		delay(10);
+	}
+
+	serial->readBytes((char*) response_frame, 2);
+
+	if (response_frame[0] == 0xaa && response_frame[1] != 0) {
+
+		while (serial->available() < 1) {
+			delay(10);
+		}
+
+		response_frame[2] = serial->read();
+		uint8_t length = response_frame[2] & 0b00111111;
+
+		while (serial->available() < 4) {
+			delay(10);
+		}
+
+		serial->readBytes((char*) &response_frame[3], 4);
+
+		uint16_t crc = CRC16(response_frame, 5);
+
+		if (lowByte(crc) == response_frame[5]
+				&& highByte(crc) == response_frame[6]) {
+
+			*dest = *((uint16_t*) &response_frame[3]);
+
+		} else {
+			// crc error
+			result = -1;
+			uint8_t *f = response_frame;
+			serial_bprintf(buf, "%hhx %hhx %hhx %hhx %hhx %hhx %hhx\r\n", f[0],
+					f[1], f[2], f[3], f[4], f[5], f[6]);
+			serial_bprintf(buf, "crc %hhx %hhx\r\n", lowByte(crc),
+					highByte(crc));
+
+		}
+
+	} else {
+
+		// unknown error
+		result = -2;
+		uint8_t *f = response_frame;
+		serial_bprintf(buf, "%hhx %hhx %hhx %hhx %hhx %hhx %hhx\r\n", f[0],
+				f[1], f[2], f[3], f[4], f[5]);
+
+	}
+
+	return result;
 
 }
 
@@ -150,6 +220,8 @@ int load_battery_current(Battery_current *current) {
 			(uint16_t*) &current->max_discharge_current,
 			MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
+	else
+		current->max_discharge_current /= 10;
 
 	if (readRegistersWithRetry(MAX_CHARGE_CURRENT_REGISTER, 1,
 			(uint16_t*) &current->max_charge_current,
@@ -179,13 +251,11 @@ int load_battery_config(Battery_config *config) {
 
 	delay(MODBUS_INTERVAL);
 
-	/*
-	 if (readRegistersWithRetry(PACK_CAPACITY_REGISTER, 1, &config->capacity, 10)
-	 <= 0) {
-	 DEBUGP("Couldn't load pack capacity\r\n");
-	 result = -1;
-	 }
-	 */
+	if (readRegistersWithRetry(PACK_CAPACITY_REGISTER, 1, &config->capacity, 10)
+			<= 0) {
+		DEBUGP("Couldn't load pack capacity\r\n");
+		result = -1;
+	}
 
 	if (result == 1)
 		config->last_success = millis();
@@ -201,11 +271,11 @@ int load_battery_soc(Battery_soc *soc) {
 	int result = 1;
 
 	if (readRegistersWithRetry(PACK_SOC_REGISTER_0, 2,
-			(uint16_t*) &soc->stateOfChargeHp,
+			(uint16_t*) &(soc->stateOfChargeHp),
 			MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
 	else
-		soc->stateOfCharge = (uint16_t) (soc->stateOfChargeHp / 1000000);
+		soc->stateOfCharge = (uint16_t) (soc->stateOfChargeHp / 100000);
 
 	if (result == 1)
 		soc->last_success = millis();

@@ -16,10 +16,9 @@
 
 #include <Arduino.h>
 #include <ModbusMaster.h>
-#include <AltSoftSerial.h>
+#include <HardwareSerial.h>
 
-#define MODBUS_RX_PIN 8
-#define MODBUS_TX_PIN 9
+#define serial (&Serial2)
 #define MODBUS_BAUD 115200
 
 #define TINYBMS_DEVICE_ID 0xAA
@@ -40,7 +39,6 @@
 #define PACK_SOC_REGISTER_0 46
 #define PACK_SOC2_REGISTER 328
 
-extern AltSoftSerial *softSerial;
 extern ModbusMaster *modbus;
 
 typedef struct _battery_voltage {
@@ -99,5 +97,7 @@ int load_battery_current(Battery_current *current);
 int load_battery_config(Battery_config *config);
 int load_battery_soc(Battery_soc *soc);
 int load_battery_soc2(Battery_soc *soc);
+
+int read_register(uint16_t idx, uint8_t count, uint16_t *dest);
 
 #endif

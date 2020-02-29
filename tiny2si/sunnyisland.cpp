@@ -67,7 +67,7 @@ void parse_voltage_frame(uint8_t frame[], uint16_t *batteryVoltage, uint16_t *ba
 
 void init_sunnyisland() {
 
-	CAN = new MCP_CAN(CAN_PIN);
+	CAN = new MCP_CAN(CAN_CS_PIN);
 
 	while(CAN->begin(CAN_500KBPS, MCP_8MHz) != CAN_OK) {
 		serial_bprintf(buf, "Unable to start CAN bus\n");

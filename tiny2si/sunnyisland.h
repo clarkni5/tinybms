@@ -11,7 +11,7 @@
 // Arduino is LE, so this is a noop
 #define leWord(x) (x)
 
-#define CAN_PIN 7
+#define CAN_CS_PIN 53
 #define CAN_DELAY 210
 
 #define SI_CHARGE_PARAMS_FRAME 0x351
