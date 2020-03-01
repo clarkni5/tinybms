@@ -69,76 +69,115 @@ void reset_tinybms() {
 
 }
 
+int timed_wait(int bytes, int timeout) {
+
+	long start_time = millis();
+	int bytes_avail;
+
+	while ((bytes_avail = serial->available()) < bytes && millis() - start_time < timeout) {
+		delay(10);
+	}
+
+	return bytes_avail >= bytes ? 1 : -1;
+}
+
+#define READ_TIMEOUT 2000
+
 int read_register(uint16_t idx, uint8_t count, uint16_t *dest) {
 
 	int result = 1;
-	uint8_t request_frame[] = { 0xaa, 0x07, count, lowByte(idx), highByte(idx),
-			0, 0 };
-	uint8_t response_frame[7];
+	struct {
+		struct {
+			uint8_t address = 0xaa;
+			uint8_t cmd = 0x07;
+		} header;
+		uint8_t regcount;
+		uint16_t regidx;
+		uint16_t crc;
+	} request_frame;
 
-	uint16_t crc = CRC16(request_frame, 5);
-	request_frame[5] = lowByte(crc);
-	request_frame[6] = highByte(crc);
+	request_frame.regcount = count;
+	request_frame.regidx = idx;
+
+	struct _response_frame {
+		struct {
+			uint8_t address;
+			uint8_t status;
+		} header;
+		uint8_t plen;
+		uint16_t data[];
+	} *response_frame;
+
+	request_frame.crc = CRC16((uint8_t*)&request_frame, 5);
+	response_frame = malloc(sizeof(_response_frame) + count * 2 + 2); // crc will go with data
 
 	// flush input
 	while (serial->available() > 0)
 		serial->read();
 
-	serial->write(request_frame, sizeof(request_frame));
+	// send the request out
+	serial->write((uint8_t*)&request_frame, sizeof(request_frame));
 	serial->flush();
 
-	delay(MODBUS_INTERVAL);
-
-	while (serial->available() < 2) {
-		delay(10);
+	if(timed_wait(2, READ_TIMEOUT) < 0) {
+		free(response_frame);
+		return -1; // timeout
 	}
 
-	serial->readBytes((char*) response_frame, 2);
+	// read the header
+	serial->readBytes((uint8_t*)&response_frame->header, 2);
 
-	if (response_frame[0] == 0xaa && response_frame[1] != 0) {
+	// AA is address, second byte is error code
+	if (response_frame->header.address == 0xaa && response_frame->header.status != 0) {
 
-		while (serial->available() < 1) {
-			delay(10);
+		if(timed_wait(1, READ_TIMEOUT) < 0)
+			return -1;
+
+		// read payload length
+		response_frame->plen = serial->read();
+		uint8_t length = response_frame->plen & 0b00111111;
+
+		if(length > count * 2) {
+			free(response_frame);
+			return -1; // wrong payload length
 		}
 
-		response_frame[2] = serial->read();
-		uint8_t length = response_frame[2] & 0b00111111;
-
-		while (serial->available() < 4) {
-			delay(10);
+		if(timed_wait(length, READ_TIMEOUT) < 0) {
+			free(response_frame);
+			return -1;
 		}
 
-		serial->readBytes((char*) &response_frame[3], 4);
+		// read data
+		serial->readBytes((uint8_t*)response_frame->data, length);
 
-		uint16_t crc = CRC16(response_frame, 5);
+		if(timed_wait(2, READ_TIMEOUT) < 0) {
+			free(response_frame);
+			return -1;
+		}
 
-		if (lowByte(crc) == response_frame[5]
-				&& highByte(crc) == response_frame[6]) {
+		serial->readBytes((uint8_t*) &response_frame->data[length], 2);
 
-			*dest = *((uint16_t*) &response_frame[3]);
+		uint16_t crc = CRC16((uint8_t*)&response_frame, 5);
 
+		if (response_frame->data[length] == crc) {
+			memcpy((uint8_t*)dest, (uint8_t*)response_frame->data, length);
+			free(response_frame);
 		} else {
 			// crc error
-			result = -1;
-			uint8_t *f = response_frame;
-			serial_bprintf(buf, "%hhx %hhx %hhx %hhx %hhx %hhx %hhx\r\n", f[0],
-					f[1], f[2], f[3], f[4], f[5], f[6]);
-			serial_bprintf(buf, "crc %hhx %hhx\r\n", lowByte(crc),
-					highByte(crc));
-
+			free(response_frame);
+			return -2;
 		}
 
 	} else {
-
 		// unknown error
-		result = -2;
-		uint8_t *f = response_frame;
+		uint8_t *f = (uint8_t*)response_frame;
 		serial_bprintf(buf, "%hhx %hhx %hhx %hhx %hhx %hhx %hhx\r\n", f[0],
 				f[1], f[2], f[3], f[4], f[5]);
-
+		free(response_frame);
+		return -3;
 	}
 
-	return result;
+	return count;
 
 }
 
