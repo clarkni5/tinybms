@@ -74,7 +74,8 @@ int timed_wait(int bytes, int timeout) {
 	long start_time = millis();
 	int bytes_avail;
 
-	while ((bytes_avail = serial->available()) < bytes && millis() - start_time < timeout) {
+	while ((bytes_avail = serial->available()) < bytes
+			&& millis() - start_time < timeout) {
 		delay(10);
 	}
 
@@ -108,69 +109,71 @@ int read_register(uint16_t idx, uint8_t count, uint16_t *dest) {
 		uint16_t data[];
 	} *response_frame;
 
-	request_frame.crc = CRC16((uint8_t*)&request_frame, 5);
-	response_frame = malloc(sizeof(_response_frame) + count * 2 + 2); // crc will go with data
+	request_frame.crc = CRC16((uint8_t*) &request_frame, 5);
+	response_frame = malloc(3 + count * 2 + 2); // crc will go with data
 
 	// flush input
 	while (serial->available() > 0)
 		serial->read();
 
 	// send the request out
-	serial->write((uint8_t*)&request_frame, sizeof(request_frame));
+	serial->write((uint8_t*) &request_frame, sizeof(request_frame));
 	serial->flush();
 
-	if(timed_wait(2, READ_TIMEOUT) < 0) {
+	if (timed_wait(2, READ_TIMEOUT) < 0) {
 		free(response_frame);
 		return -1; // timeout
 	}
 
 	// read the header
-	serial->readBytes((uint8_t*)&response_frame->header, 2);
+	serial->readBytes((uint8_t*) &response_frame->header, 2);
 
 	// AA is address, second byte is error code
-	if (response_frame->header.address == 0xaa && response_frame->header.status != 0) {
+	if (response_frame->header.address == 0xaa
+			&& response_frame->header.status != 0) {
 
-		if(timed_wait(1, READ_TIMEOUT) < 0)
+		if (timed_wait(1, READ_TIMEOUT) < 0)
 			return -1;
 
 		// read payload length
 		response_frame->plen = serial->read();
 		uint8_t length = response_frame->plen & 0b00111111;
 
-		if(length > count * 2) {
+		if (length != count * 2) {
 			free(response_frame);
 			return -1; // wrong payload length
 		}
 
-		if(timed_wait(length, READ_TIMEOUT) < 0) {
+		if (timed_wait(length, READ_TIMEOUT) < 0) {
 			free(response_frame);
 			return -1;
 		}
 
 		// read data
-		serial->readBytes((uint8_t*)response_frame->data, length);
+		serial->readBytes((uint8_t*) response_frame->data, length);
 
-		if(timed_wait(2, READ_TIMEOUT) < 0) {
+		if (timed_wait(2, READ_TIMEOUT) < 0) {
 			free(response_frame);
 			return -1;
 		}
 
-		serial->readBytes((uint8_t*) &response_frame->data[length], 2);
+		serial->readBytes((uint8_t*) &response_frame->data[count], 2);
 
-		uint16_t crc = CRC16((uint8_t*)&response_frame, 5);
+		uint16_t crc = CRC16((uint8_t*) response_frame, 3 + length);
 
-		if (response_frame->data[length] == crc) {
-			memcpy((uint8_t*)dest, (uint8_t*)response_frame->data, length);
+		if (response_frame->data[count] == crc) {
+			memcpy((uint8_t*) dest, (uint8_t*) response_frame->data, length);
 			free(response_frame);
 		} else {
 			// crc error
+			DEBUGP("crc %x %x\r\n", response_frame->data[count], crc);
 			free(response_frame);
 			return -2;
 		}
 
 	} else {
 		// unknown error
-		uint8_t *f = (uint8_t*)response_frame;
+		uint8_t *f = (uint8_t*) response_frame;
 		serial_bprintf(buf, "%hhx %hhx %hhx %hhx %hhx %hhx %hhx\r\n", f[0],
 				f[1], f[2], f[3], f[4], f[5]);
 		free(response_frame);
@@ -259,8 +262,6 @@ int load_battery_current(Battery_current *current) {
 			(uint16_t*) &current->max_discharge_current,
 			MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
-	else
-		current->max_discharge_current /= 10;
 
 	if (readRegistersWithRetry(MAX_CHARGE_CURRENT_REGISTER, 1,
 			(uint16_t*) &current->max_charge_current,
@@ -316,7 +317,7 @@ int load_battery_soc(Battery_soc *soc) {
 			MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
 	else
-		soc->stateOfCharge = (uint16_t) (soc->stateOfChargeHp / 100000);
+		soc->stateOfCharge = (uint16_t) (soc->stateOfChargeHp / 1000000);
 
 	if (result == 1)
 		soc->last_success = millis();

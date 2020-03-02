@@ -45,7 +45,7 @@ void dump_battery_data() {
 	uint8_t k;
 	char cls[] = { 27, '[', '2', 'J', 27, '[', 'H', 0 };
 
-	serial_bprintf(buf, cls);
+//	serial_bprintf(buf, cls);
 
 	print_age("config", battery_config.last_success);
 
@@ -84,7 +84,7 @@ void dump_battery_data() {
 	print_age("soc", battery_current.last_success);
 
 	serial_bprintf(buf, "Pack SOC: %hu%%\r\n", battery_soc.stateOfCharge);
-	serial_bprintf(buf, "Pack SOC hp: %lu%%\r\n", battery_soc.stateOfChargeHp);
+	serial_bprintf(buf, "Pack SOC hp: %lu\r\n", battery_soc.stateOfChargeHp);
 	serial_bprintf(buf, "Pack SOH : %hu%%\r\n", battery_soc.stateOfHealth);
 
 	serial_bprintf(buf, "\r\n");
