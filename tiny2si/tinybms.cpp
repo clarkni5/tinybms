@@ -252,12 +252,12 @@ int load_battery_voltage(Battery_config *config, Battery_voltage *voltage) {
 int load_battery_current(Battery_current *current) {
 
 	int result = 1;
-
+/*
 	if (readRegistersWithRetry(PACK_CURRENT_REGISTER_0, 2,
 			(uint16_t*) &current->pack_current,
 			MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
-
+*/
 	if (readRegistersWithRetry(MAX_DISCHARGE_CURRENT_REGISTER, 1,
 			(uint16_t*) &current->max_discharge_current,
 			MODBUS_RETRY_COUNT) <= 0)
@@ -357,9 +357,11 @@ int load_battery_safety(Battery_safety_params *safp) {
 	delay(MODBUS_INTERVAL);
 
 	if (readRegistersWithRetry(CELL_DISCHARGED_VOLTAGE_REGISTER, 1,
-			&safp->cell_charged_v,
+			&safp->cell_discharged_v,
 			MODBUS_RETRY_COUNT) <= 0)
 		result = -1;
+
+	DEBUGP("char %u, dischar %u\r\n", safp->cell_charged_v, safp->cell_discharged_v);
 
 	if (result == 1)
 		safp->last_success = millis();

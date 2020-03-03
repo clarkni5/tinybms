@@ -22,7 +22,7 @@ void setup() {
 	serial_bprintf(buf, "Starting tiny2si\r\n");
 
 	init_tinybms();
-//	reset_tinybms();
+	reset_tinybms();
 	init_sunnyisland();
 
 // Allow the hardware to sort itself out
@@ -45,7 +45,7 @@ void dump_battery_data() {
 	uint8_t k;
 	char cls[] = { 27, '[', '2', 'J', 27, '[', 'H', 0 };
 
-//	serial_bprintf(buf, cls);
+	//serial_bprintf(buf, cls);
 
 	print_age("config", battery_config.last_success);
 
@@ -91,8 +91,8 @@ void dump_battery_data() {
 
 	print_age("safety", battery_safety.last_success);
 
-	serial_bprintf(buf, "Cell fully charged: %3.2fV\r\n", battery_safety.cell_charged_v / 1000);
-	serial_bprintf(buf, "Cell fully discharged: %3.2fV\r\n", battery_safety.cell_discharged_v / 1000);
+	serial_bprintf(buf, "Cell fully charged: %3.2fV\r\n", battery_safety.cell_charged_v / 1000.0);
+	serial_bprintf(buf, "Cell fully discharged: %3.2fV\r\n", battery_safety.cell_discharged_v / 1000.0);
 
 	serial_bprintf(buf, "\r\n");
 
