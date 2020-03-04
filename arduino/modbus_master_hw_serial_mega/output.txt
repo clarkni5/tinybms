@@ -1,0 +1,120 @@
+================================================================================
+ Output
+ Register output has been sorted in numerical order.
+================================================================================
+
+Init OK
+
+Cell 16 voltage: 0.00V
+Cell 15 voltage: 0.00V
+Cell 14 voltage: 3.97V
+Cell 13 voltage: 3.97V
+Cell 12 voltage: 3.97V
+Cell 11 voltage: 3.97V
+Cell 10 voltage: 3.97V
+Cell 9 voltage: 3.98V
+Cell 8 voltage: 3.99V
+Cell 7 voltage: 3.98V
+Cell 6 voltage: 3.98V
+Cell 5 voltage: 3.98V
+Cell 4 voltage: 3.97V
+Cell 3 voltage: 3.97V
+Cell 2 voltage: 3.98V
+Cell 1 voltage: 3.98V
+
+Pack voltage: 55.67V
+
+Register 0: HEX=0, UINT_16=0
+Register 1: HEX=0, UINT_16=0
+Register 2: HEX=9B1E, UINT_16=39710
+Register 3: HEX=9B28, UINT_16=39720
+Register 4: HEX=9B1E, UINT_16=39710
+Register 5: HEX=9B32, UINT_16=39730
+Register 6: HEX=9B32, UINT_16=39730
+Register 7: HEX=9B46, UINT_16=39750
+Register 8: HEX=9BAA, UINT_16=39850
+Register 9: HEX=9BB4, UINT_16=39860
+Register 10: HEX=9B46, UINT_16=39750
+Register 11: HEX=9B3C, UINT_16=39740
+Register 12: HEX=9B32, UINT_16=39730
+Register 13: HEX=9B3C, UINT_16=39740
+Register 14: HEX=9BAA, UINT_16=39850
+Register 15: HEX=9BAA, UINT_16=39850
+Register 32: HEX=F8D0 D6, UINT_32=14088400
+Register 34: HEX=D51C 266, UINT_32=40293660
+Register 36: HEX=B53F 425E, FLOAT=55.68
+Register 38: HEX=0 0, FLOAT=0.00
+Register 40: HEX=F84, UINT_16=3972
+Register 41: HEX=F92, UINT_16=3986
+Register 42: HEX=FFFF8000, INT_16=-32768
+Register 43: HEX=FFFF8000, INT_16=-32768
+Register 46: HEX=AA36 4CD, UINT_32=80587318
+Register 48: HEX=66, INT_16=102
+Register 50: HEX=97, UINT_16=151
+Register 51: HEX=0, UINT_16=0
+Register 52: HEX=0, UINT_16=0
+Register 53: HEX=E, UINT_16=14
+Register 102: HEX=1FE, UINT_16=510
+Register 103: HEX=0, UINT_16=0
+Register 104: HEX=96, UINT_16=150
+Register 105: HEX=0, UINT_16=0
+Register 106: HEX=0, UINT_16=0
+Register 107: HEX=0, UINT_16=0
+Register 108: HEX=0, UINT_16=0
+Register 109: HEX=0, UINT_16=0
+Register 111: HEX=0, UINT_16=0
+Register 112: HEX=0, UINT_16=0
+Register 113: HEX=1907, INT_8 LSB=7, INT_8 MSB=25
+Register 114: HEX=300, UINT_8 LSB=0, UINT_8 MSB=3
+Register 116: HEX=8A3D BE, UINT_32=12487229
+Register 200: HEX=1226
+Register 201: HEX=6500
+Register 202: HEX=4E2B
+Register 203: HEX=64B9
+Register 204: HEX=4E2C
+Register 205: HEX=62B9
+Register 206: HEX=4E42
+Register 207: HEX=65B9
+Register 296: HEX=0
+Register 297: HEX=0
+Register 300: HEX=1036, UINT_16=4150
+Register 301: HEX=BB8, UINT_16=3000
+Register 303: HEX=C80, UINT_16=3200
+Register 304: HEX=3E8, UINT_16=1000
+Register 306: HEX=19C8, UINT_16=6600
+Register 307: HEX=E, UINT_16=14
+Register 308: HEX=F, UINT_16=15
+Register 315: HEX=1068, UINT_16=4200
+Register 316: HEX=B54, UINT_16=2900
+Register 317: HEX=3C, UINT_16=60
+Register 318: HEX=14, UINT_16=20
+Register 319: HEX=3C, INT_16=60
+Register 320: HEX=1, INT_16=1
+Register 328: HEX=FFFF, UINT_16=65535
+Register 500: HEX=102
+Register 501: HEX=301
+Register 502: HEX=F2, UINT_16=242
+Register 503: HEX=418
+
+Read 1 values:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 2 values:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 4 values:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 8 values:samples=50, avgTime=3ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 16 values:samples=50, avgTime=5ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 24 values:samples=50, avgTime=6ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 32 values:samples=50, avgTime=8ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 40 values:samples=50, avgTime=9ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+
+Read reserved register 45:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read reserved register 49:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read reserved register 110:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+
+Read 16 values starting at register 0:samples=50, avgTime=5ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read 16 values starting at register 16:samples=50, avgTime=5ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+
+Read with an interval of 10ms:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read with an interval of 20ms:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read with an interval of 50ms:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read with an interval of 100ms:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read with an interval of 200ms:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
+Read with an interval of 400ms:samples=50, avgTime=2ms, errorCount=0, crcErrorCount=0, timeoutErrorCount=0
