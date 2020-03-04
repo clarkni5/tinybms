@@ -45,7 +45,7 @@ void dump_battery_data() {
 	uint8_t k;
 	char cls[] = { 27, '[', '2', 'J', 27, '[', 'H', 0 };
 
-	//serial_bprintf(buf, cls);
+	serial_bprintf(buf, cls);
 
 	print_age("config", battery_config.last_success);
 
@@ -107,14 +107,26 @@ void send_battery_data() {
 
 }
 
-void send_battery_alerts() {
+void send_battery_faults() {
 
 	if(battery_voltage.min_cell_voltage < battery_safety.cell_discharged_v) {
-		serial_bprintf(buf, "ALERT: undervoltage\r\n");
+		serial_bprintf(buf, "FAULT: undervoltage\r\n");
+		send_fault_frame(FAULT0_UNDERVOLTAGE, 0, 0, 0);
 	}
 
 	if(battery_voltage.max_cell_voltage > battery_safety.cell_charged_v) {
-		serial_bprintf(buf, "ALERT: overvoltage\r\n");
+		serial_bprintf(buf, "FAULT: overvoltage\r\n");
+		send_fault_frame(FAULT0_OVERVOLTAGE, 0, 0, 0);
+	}
+
+	if(battery_current.pack_current*-1 > battery_current.max_discharge_current) {
+		serial_bprintf(buf, "FAULT: discharge overcurrent\r\n");
+		send_fault_frame(0, FAULT1_DISCHARGE_OVERCURRENT, 0, 0);
+	}
+
+	if(battery_current.pack_current > battery_current.max_charge_current) {
+		serial_bprintf(buf, "FAULT: charge overcurrent\r\n");
+		send_fault_frame(0, 0, FAULT2_CHARGE_OVERCURRENT, 0);
 	}
 
 }
@@ -127,7 +139,7 @@ void loop() {
 
 		dump_battery_data();
 		send_battery_data();
-		send_battery_alerts();
+		send_battery_faults();
 
 	}
 

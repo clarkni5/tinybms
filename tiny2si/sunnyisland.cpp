@@ -117,3 +117,12 @@ void send_soc_frame(Battery_soc *soc) {
 	delay(CAN_DELAY);
 
 }
+
+void send_fault_frame(uint8_t f0, uint8_t f1, uint8_t f2, uint8_t f3) {
+
+	unsigned char frame[] = { f0, f1, f2, f3 };
+	CAN->sendMsgBuf(SI_FAULT_FRAME, 0, 4, frame);
+	free(frame);
+	delay(CAN_DELAY);
+
+}
