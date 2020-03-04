@@ -39,6 +39,7 @@ extern HardwareSerial Serial2;
 #define PACK_CAPACITY_REGISTER 306
 #define PACK_SOC_REGISTER_0 46
 #define PACK_SOC2_REGISTER 328
+#define BMS_VERSION_REGISTER_0 500
 
 #define CELL_CHARGED_VOLTAGE_REGISTER 300
 #define CELL_DISCHARGED_VOLTAGE_REGISTER 301
@@ -87,7 +88,7 @@ typedef struct _battery_config {
 	uint16_t cell_count;
 	uint16_t capacity;
 
-	unsigned long last_success;
+	unsigned long last_success = 0;
 
 } Battery_config;
 
@@ -101,6 +102,32 @@ typedef struct _battery_soc {
 
 } Battery_soc;
 
+typedef struct _bms_version {
+
+	struct {
+		uint8_t hw_version;
+		uint8_t hw_ch_version;
+	} hw_ver;
+
+	struct {
+		uint8_t fw_version;
+		uint8_t bpt : 1;
+		uint8_t bcs : 2;
+	} fw_ver;
+
+	uint16_t int_fw_ver;
+
+	struct {
+		uint8_t booloader_ver;
+		uint8_t profile_ver;
+	} loader_ver;
+
+	uint8_t serial_num[12];
+
+	unsigned long last_success = 0;
+
+} Bms_version __attribute__((packed));
+
 void init_tinybms();
 void reset_tinybms();
 int readRegistersWithRetry(uint16_t idx, uint16_t count, uint16_t *dest,
@@ -112,6 +139,7 @@ int load_battery_soc(Battery_soc *soc);
 int load_battery_soc2(Battery_soc *soc);
 int load_battery_safety(Battery_safety_params *safp);
 
+int load_bms_version(Bms_version *ver);
 int read_register(uint16_t idx, uint8_t count, uint16_t *dest);
 
 #endif

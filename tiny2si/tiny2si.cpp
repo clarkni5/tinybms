@@ -13,6 +13,7 @@ Battery_voltage battery_voltage;
 Battery_current battery_current;
 Battery_soc battery_soc;
 Battery_safety_params battery_safety;
+Bms_version bms_version;
 
 char buf[128];
 
@@ -22,17 +23,23 @@ void setup() {
 	serial_bprintf(buf, "Starting tiny2si\r\n");
 
 	init_tinybms();
-	reset_tinybms();
+//	reset_tinybms();
 	init_sunnyisland();
 
-// Allow the hardware to sort itself out
 	delay(2000);
 	serial_bprintf(buf, "Init OK\r\n");
+
 }
 
 void load_battery_data() {
 
-	load_battery_config(&battery_config);
+	if (bms_version.last_success == 0) {
+		load_bms_version(&bms_version);
+	}
+
+	if (battery_config.last_success == 0) {
+		load_battery_config(&battery_config);
+	}
 	load_battery_voltage(&battery_config, &battery_voltage);
 	load_battery_current(&battery_current);
 	load_battery_soc(&battery_soc);
@@ -91,8 +98,30 @@ void dump_battery_data() {
 
 	print_age("safety", battery_safety.last_success);
 
-	serial_bprintf(buf, "Cell fully charged: %3.2fV\r\n", battery_safety.cell_charged_v / 1000.0);
-	serial_bprintf(buf, "Cell fully discharged: %3.2fV\r\n", battery_safety.cell_discharged_v / 1000.0);
+	serial_bprintf(buf, "Cell fully charged: %3.2fV\r\n",
+			battery_safety.cell_charged_v / 1000.0);
+	serial_bprintf(buf, "Cell fully discharged: %3.2fV\r\n",
+			battery_safety.cell_discharged_v / 1000.0);
+
+	serial_bprintf(buf, "\r\n");
+
+	print_age("BMS ver", bms_version.last_success);
+
+	serial_bprintf(buf,
+			"Hardware Version %hhu, Hardware Changes Version %hu\r\n",
+			bms_version.hw_ver.hw_version, bms_version.hw_ver.hw_ch_version);
+	serial_bprintf(buf,
+			"Public Release Firmware Version %hhu, BPT %hhhx BCS %hhhx\r\n",
+			bms_version.fw_ver.fw_version, bms_version.fw_ver.bpt,
+			bms_version.fw_ver.bcs);
+	serial_bprintf(buf, "Internal Firmware Version %u\r\n",
+			bms_version.int_fw_ver);
+	serial_bprintf(buf, "Bootloader version %hu, Profile Version %hu\r\n",
+			bms_version.loader_ver.booloader_ver,
+			bms_version.loader_ver.profile_ver);
+
+	uint8_t *s = bms_version.serial_num;
+	serial_bprintf(buf, "Product Serial Number %hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx\r\n", s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10], s[11]);
 
 	serial_bprintf(buf, "\r\n");
 
@@ -109,22 +138,23 @@ void send_battery_data() {
 
 void send_battery_faults() {
 
-	if(battery_voltage.min_cell_voltage < battery_safety.cell_discharged_v) {
+	if (battery_voltage.min_cell_voltage < battery_safety.cell_discharged_v) {
 		serial_bprintf(buf, "FAULT: undervoltage\r\n");
 		send_fault_frame(FAULT0_UNDERVOLTAGE, 0, 0, 0);
 	}
 
-	if(battery_voltage.max_cell_voltage > battery_safety.cell_charged_v) {
+	if (battery_voltage.max_cell_voltage > battery_safety.cell_charged_v) {
 		serial_bprintf(buf, "FAULT: overvoltage\r\n");
 		send_fault_frame(FAULT0_OVERVOLTAGE, 0, 0, 0);
 	}
 
-	if(battery_current.pack_current*-1 > battery_current.max_discharge_current) {
+	if (battery_current.pack_current * -1
+			> battery_current.max_discharge_current) {
 		serial_bprintf(buf, "FAULT: discharge overcurrent\r\n");
 		send_fault_frame(0, FAULT1_DISCHARGE_OVERCURRENT, 0, 0);
 	}
 
-	if(battery_current.pack_current > battery_current.max_charge_current) {
+	if (battery_current.pack_current > battery_current.max_charge_current) {
 		serial_bprintf(buf, "FAULT: charge overcurrent\r\n");
 		send_fault_frame(0, 0, FAULT2_CHARGE_OVERCURRENT, 0);
 	}
