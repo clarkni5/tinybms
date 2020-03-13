@@ -80,11 +80,13 @@ uint8_t* make_charge_params_frame3(uint16_t finalChargeVoltage,
 		uint16_t finalDischargeVoltage);
 
 void init_sunnyisland();
-void send_voltage_frame(Battery_voltage *voltage);
-void send_name_frame();
-void send_id_frame(uint16_t batteryCapacity);
-void send_soc_frame(Battery_soc *soc);
-void send_fault_frame(uint8_t f0, uint8_t f1, uint8_t f2, uint8_t f3);
+void send_voltage_frame(Battery_voltage *voltage, void (*onsend_callback)(uint32_t id, uint8_t frame[], uint8_t len));
+void send_name_frame(void (*onsend_callback)(uint32_t id, uint8_t frame[], uint8_t len));
+void send_id_frame(uint16_t batteryCapacity, void (*onsend_callback)(uint32_t id, uint8_t frame[], uint8_t len));
+void send_soc_frame(Battery_soc *soc, void (*onsend_callback)(uint32_t id, uint8_t frame[], uint8_t len));
+void send_fault_frame(uint8_t f0, uint8_t f1, uint8_t f2, uint8_t f3, void (*onsend_callback)(uint32_t id, uint8_t frame[], uint8_t len));
+void send_charge_params_frame(Battery_current *current, void (*onsend_callback)(uint32_t id, uint8_t frame[], uint8_t len));
+
 
 #endif
 

@@ -2,6 +2,7 @@
 #include "util.h"
 #include "tinybms.h"
 #include "sunnyisland.h"
+#include "esp8266.h"
 
 #define SERIAL_BAUD 9600
 #define POLL_INTERVAL 10000
@@ -16,6 +17,7 @@ Battery_safety_params battery_safety;
 Bms_version bms_version;
 
 char buf[128];
+char wifi_avail = 0;
 
 void setup() {
 
@@ -25,6 +27,10 @@ void setup() {
 	init_tinybms();
 //	reset_tinybms();
 	init_sunnyisland();
+	if (init_wifi()) {
+		wifi_avail = 1;
+		serial_bprintf(buf, "Wifi initialized\r\n");
+	}
 
 	delay(2000);
 	serial_bprintf(buf, "Init OK\r\n");
@@ -121,18 +127,37 @@ void dump_battery_data() {
 			bms_version.loader_ver.profile_ver);
 
 	uint8_t *s = bms_version.serial_num;
-	serial_bprintf(buf, "Product Serial Number %hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx\r\n", s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10], s[11]);
+	serial_bprintf(buf,
+			"Product Serial Number %hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx\r\n",
+			s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10],
+			s[11]);
 
 	serial_bprintf(buf, "\r\n");
 
 }
 
+void onsend_callback(uint32_t id, uint8_t frame[], uint8_t len) {
+
+	serial_bprintf(buf, "Callback invoked with cmd %lx and len %hhu\r\n", id,
+			len);
+
+	if (wifi_avail) {
+		uint8_t *datagram = malloc(4 + len);
+		memcpy(datagram, &id, 4);
+		memcpy(&datagram[4], frame, len);
+		wifi_send_data(datagram, 4 + len);
+		free(datagram);
+	}
+
+}
+
 void send_battery_data() {
 
-	send_name_frame();
-	send_id_frame(battery_config.capacity);
-	send_soc_frame(&battery_soc);
-	send_voltage_frame(&battery_voltage);
+	send_name_frame(onsend_callback);
+	send_id_frame(battery_config.capacity, onsend_callback);
+	send_soc_frame(&battery_soc, onsend_callback);
+	send_voltage_frame(&battery_voltage, onsend_callback);
+	send_charge_params_frame(&battery_current, onsend_callback);
 
 }
 
@@ -140,23 +165,24 @@ void send_battery_faults() {
 
 	if (battery_voltage.min_cell_voltage < battery_safety.cell_discharged_v) {
 		serial_bprintf(buf, "FAULT: undervoltage\r\n");
-		send_fault_frame(FAULT0_UNDERVOLTAGE, 0, 0, 0);
+		send_fault_frame(FAULT0_UNDERVOLTAGE, 0, 0, 0, onsend_callback);
 	}
 
 	if (battery_voltage.max_cell_voltage > battery_safety.cell_charged_v) {
 		serial_bprintf(buf, "FAULT: overvoltage\r\n");
-		send_fault_frame(FAULT0_OVERVOLTAGE, 0, 0, 0);
+		send_fault_frame(FAULT0_OVERVOLTAGE, 0, 0, 0, onsend_callback);
 	}
 
 	if (battery_current.pack_current * -1
 			> battery_current.max_discharge_current) {
 		serial_bprintf(buf, "FAULT: discharge overcurrent\r\n");
-		send_fault_frame(0, FAULT1_DISCHARGE_OVERCURRENT, 0, 0);
+		send_fault_frame(0, FAULT1_DISCHARGE_OVERCURRENT, 0, 0,
+				onsend_callback);
 	}
 
 	if (battery_current.pack_current > battery_current.max_charge_current) {
 		serial_bprintf(buf, "FAULT: charge overcurrent\r\n");
-		send_fault_frame(0, 0, FAULT2_CHARGE_OVERCURRENT, 0);
+		send_fault_frame(0, 0, FAULT2_CHARGE_OVERCURRENT, 0, onsend_callback);
 	}
 
 }

@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include <stdarg.h>
+#include <Arduino.h>
 
 #undef DEBUG
 extern char buf[128];
@@ -21,6 +22,7 @@ extern char buf[128];
 
 void serial_printf(const char *fmt, ...);
 void serial_bprintf(char *buf, const char *fmt, ...);
+void serial_sbprintf(HardwareSerial *serial, char *buf, const char *fmt, ...);
 int freeMemory();
 
 #endif

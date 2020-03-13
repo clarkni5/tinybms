@@ -1,14 +1,6 @@
 /**
  * ModbusMaster library: https://github.com/4-20ma/ModbusMaster
  *
- * Requires a JST 2.0mm 4-pin connector to connect to the TinyBMS.
- * Modbus communication is over RS232.
- *
- * AltSofteSerial modbus connections:
- * WHITE  > X      - not used (this is 5V coming from the TinyBMS)
- * YELLOW > pin  8 - data input pin (this is the TinyBMS Tx pin)
- * BLACK  > pin  9 - data output pin (this is the TinyBMS Rx pin)
- * RED    > ground - ground reference for I/O pins
  */
 
 #ifndef TINYBMS_H
@@ -17,7 +9,7 @@
 #include <Arduino.h>
 #include <ModbusMaster.h>
 
-extern HardwareSerial Serial2;
+extern HardwareSerial Serial2; // D17 RX, D16 TX
 #define serial (&Serial2)
 
 #define MODBUS_BAUD 115200

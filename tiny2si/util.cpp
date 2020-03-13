@@ -9,6 +9,14 @@ void serial_bprintf(char *buf, const char *fmt, ...) {
 	va_end(argp);
 }
 
+void serial_sbprintf(HardwareSerial *serial, char *buf, const char *fmt, ...) {
+	va_list argp;
+	va_start(argp, fmt);
+	vsprintf(buf, fmt, argp);
+	serial->print(buf);
+	va_end(argp);
+}
+
 void serial_printf(const char *fmt, ...) {
 	char buf[128];
 
