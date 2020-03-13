@@ -1,70 +1,109 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "canbus_util.h"
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <assert.h>
+#include <time.h>
 
 int main(int argc, char** argv) {
 
-    word finalChargeVoltage = 570; // 57.0V
-    word maxChargeCurrent = 100; // 10.0A
-    word maxDischargeCurrent = 120; // 12.0A
-    word finalDischargeVoltage = 490; // 49.0V
-    word stateOfCharge = 52; // 52%
-    word stateOfHealth = 100; // 100%
-    word stateOfChargeHighPrecision = 5230; // 52.30%
-    word batteryVoltage = 5320; // 53.20V
-    word batteryCurrent = 24; // 2.4A
-    word batteryTemp = 241; // 24.1C
-    word batteryCapacity = 1250; // 1250Ah    
-    
-    printf("sizeof(byte) = %lu\n", sizeof(byte));
-    printf("sizeof(word) = %lu\n\n", sizeof(word));
-    
-    //byte *frame = make_charge_params_frame2(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
-    byte *frame = make_charge_params_frame3(finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
-    
-    word a, b, c, d;
-    
-    parse_charge_params_frame(frame, &a, &b, &c, &d);
-    
-    free(frame);
-    
-    printf("finalChargeVoltage = %hu\n", a);
-    assert(a == finalChargeVoltage);
-    printf("maxChargeCurrent = %hu\n", b);
-    assert(b == maxChargeCurrent);
-    printf("maxDischargeCurrent = %hu\n", c);
-    assert(c == maxDischargeCurrent);
-    printf("finalDischargeVoltage = %hu\n", d);
-    assert(finalDischargeVoltage == d);
-    
-    frame = make_soc_frame(stateOfCharge, stateOfHealth, stateOfChargeHighPrecision);
-    
-    parse_soc_frame(frame, &a, &b, &c);
-    
-    printf("stateOfCharge = %hu\n", a);
-    assert(stateOfCharge == a);
-    printf("stateOfHealth = %hu\n", b);
-    assert(stateOfHealth == b);
-    printf("stateOfChargeHighPrecision = %hu\n", c);
-    assert(stateOfChargeHighPrecision == c);
-    
-    free(frame);
-    
-    frame = make_voltage_frame(batteryVoltage, batteryCurrent, batteryTemp);
-    
-    parse_voltage_frame(frame, &a, &b, &c);
-    
-    printf("batteryVoltage = %hu\n", a);
-    assert(batteryVoltage == a);
-    printf("batteryCurrent = %hu\n", b);
-    assert(batteryCurrent == b);
-    printf("batteryTemp = %hu\n", c);
-    assert(batteryTemp == c);
-    
-    free(frame);
-    
-    assert(1 > 2);
-    
+    struct sockaddr_in si_me, si_other;
+    int s;
+    assert((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) != -1);
+    int port = 1080;
+    int broadcast = 1;
+
+    setsockopt(s, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof (broadcast));
+
+    memset(&si_me, 0, sizeof (si_me));
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(port);
+    si_me.sin_addr.s_addr = INADDR_ANY;
+
+    assert(bind(s, (struct sockaddr *) & si_me, sizeof (struct sockaddr)) != -1);
+
+    while (1) {
+	char buf[2048];
+	unsigned slen = sizeof (struct sockaddr);
+	int bytes = recvfrom(s, buf, sizeof (buf) - 1, 0, (struct sockaddr *) & si_other, &slen);
+
+	uint32_t id = *((uint32_t*) buf);
+	time_t t = time(NULL);
+
+	switch (id) {
+
+	    case SI_CHARGE_PARAMS_FRAME:
+	    {
+		uint16_t finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage;
+		parse_charge_params_frame(&buf[4], &finalChargeVoltage, &maxChargeCurrent, &maxDischargeCurrent, &finalDischargeVoltage);
+		printf("%s Charge params: finalVoltage %hu, maxChargeCurrent %hu, maxDischargeCurrent %hu, finalDischargeVoltage %hu\n", ctime(&t), finalChargeVoltage,
+			maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
+		break;
+	    }
+	    case SI_VOLTAGE_FRAME:
+	    {
+		uint16_t batteryVoltage, batteryCurrent, batteryTemp;
+		parse_voltage_frame(&buf[4], &batteryVoltage, &batteryCurrent, &batteryTemp);
+		printf("%s Voltage params: batteryVoltage %hu, batteryCurrent %hu, batteryTemp %hu\n", ctime(&t), batteryVoltage, batteryCurrent, batteryTemp);
+		break;
+	    }
+	    case SI_SOC_FRAME:
+	    {
+		uint16_t stateOfCharge, stateOfHealth, stateOfChargeHighPrecision;
+		parse_soc_frame(&buf[4], &stateOfCharge, &stateOfHealth, &stateOfChargeHighPrecision);
+		printf("%s States: stateOfCharge %hu, stateOfHealth %hu, stateofChargeHighPrecision %hu\n", ctime(&t), stateOfCharge, stateOfHealth, stateOfChargeHighPrecision);
+		break;
+	    }
+	    case SI_ID_FRAME:
+	    {
+
+		struct _id_frame {
+		    uint16_t a;
+		    uint16_t b;
+		    uint16_t capacity;
+		    uint16_t c;
+
+		} id_frame;
+
+		memcpy(&id_frame, &buf[4], sizeof (id_frame));
+		printf("%s ID: capacity %hu\n", ctime(&t), id_frame.capacity);
+
+		break;
+	    }
+	    case SI_NAME_FRAME:
+	    {
+
+		char bms_name[100];
+		memcpy(bms_name, &buf[4], bytes - 4);
+		bms_name[bytes - 4] = 0;
+		printf("%s BMS Name: %s\n", ctime(&t), bms_name);
+
+		break;
+	    }
+	    case SI_FAULT_FRAME:
+	    {
+
+		struct _faults {
+		    uint8_t f0, f1, f2, f3;
+		} faults;
+
+		memcpy(&faults, &buf[4], sizeof (faults));
+		printf("%s Faults: f0 %hhx, f1 %hhx, f2 %hhx, f3 %hhx\n", ctime(&t), faults.f0, faults.f1, faults.f2, faults.f3);
+
+		break;
+	    }
+
+	    default:
+		printf("unknown frame type %x\n", id);
+		break;
+
+	}
+
+    }
+
     return (EXIT_SUCCESS);
+
 }

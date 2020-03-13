@@ -1,8 +1,8 @@
 #include "canbus_util.h"
 
-byte *array_dup(byte *src, word size) {
+uint8_t *array_dup(uint8_t *src, uint16_t size) {
     
-    byte *result = calloc(sizeof(byte), size);
+    uint8_t *result = calloc(sizeof(uint8_t), size);
     
     memcpy(result, src, size);
     
@@ -10,10 +10,10 @@ byte *array_dup(byte *src, word size) {
     
 }
 
-byte *make_charge_params_frame(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage) {
+uint8_t *make_charge_params_frame(uint16_t finalChargeVoltage, uint16_t maxChargeCurrent, uint16_t maxDischargeCurrent, uint16_t finalDischargeVoltage) {
 
-    byte *result = calloc(sizeof (byte), 6);
-    byte *p = result;
+    uint8_t *result = calloc(sizeof (uint8_t), 6);
+    uint8_t *p = result;
 
     *p++ = lowByte(finalChargeVoltage);
     *p++ = highByte(finalChargeVoltage);
@@ -26,28 +26,28 @@ byte *make_charge_params_frame(word finalChargeVoltage, word maxChargeCurrent, w
 
 }
 
-byte *make_charge_params_frame2(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage) {
+uint8_t *make_charge_params_frame2(uint16_t finalChargeVoltage, uint16_t maxChargeCurrent, uint16_t maxDischargeCurrent, uint16_t finalDischargeVoltage) {
 
-    word *result = calloc(sizeof (word), 3);
-    word *p = result;
+    uint16_t *result = calloc(sizeof (uint16_t), 3);
+    uint16_t *p = result;
 
     *p++ = leWord(finalChargeVoltage);
     *p++ = leWord(maxChargeCurrent);
     *p++ = leWord(finalDischargeVoltage);
 
-    return (byte*)result;
+    return (uint8_t*)result;
 
 }
 
-byte *make_charge_params_frame3(word finalChargeVoltage, word maxChargeCurrent, word maxDischargeCurrent, word finalDischargeVoltage) {
+uint8_t *make_charge_params_frame3(uint16_t finalChargeVoltage, uint16_t maxChargeCurrent, uint16_t maxDischargeCurrent, uint16_t finalDischargeVoltage) {
     
-    word frame[] = {leWord(finalChargeVoltage), leWord(maxChargeCurrent), leWord(maxDischargeCurrent), leWord(finalDischargeVoltage)};
+    uint16_t frame[] = {leWord(finalChargeVoltage), leWord(maxChargeCurrent), leWord(maxDischargeCurrent), leWord(finalDischargeVoltage)};
 
-    return array_dup((byte*)frame, sizeof(frame));
+    return array_dup((uint8_t*)frame, sizeof(frame));
 
 }
 
-void parse_charge_params_frame(byte frame[], word *finalChargeVoltage, word *maxChargeCurrent, word *maxDischargeCurrent, word *finalDischargeVoltage) {
+void parse_charge_params_frame(uint8_t frame[], uint16_t *finalChargeVoltage, uint16_t *maxChargeCurrent, uint16_t *maxDischargeCurrent, uint16_t *finalDischargeVoltage) {
 
     *finalChargeVoltage = loHi(frame[0], frame[1]);
     *maxChargeCurrent = loHi(frame[2], frame[3]);
@@ -56,10 +56,10 @@ void parse_charge_params_frame(byte frame[], word *finalChargeVoltage, word *max
 
 }
 
-byte *make_soc_frame(word stateOfCharge, word stateOfHealth, word stateOfChargeHighPrecision) {
+uint8_t *make_soc_frame(uint16_t stateOfCharge, uint16_t stateOfHealth, uint16_t stateOfChargeHighPrecision) {
 
-    byte *result = calloc(sizeof (byte), 6);
-    byte *p = result;
+    uint8_t *result = calloc(sizeof (uint8_t), 6);
+    uint8_t *p = result;
 
     *p++ = lowByte(stateOfCharge);
     *p++ = highByte(stateOfCharge);
@@ -72,7 +72,7 @@ byte *make_soc_frame(word stateOfCharge, word stateOfHealth, word stateOfChargeH
 
 }
 
-void parse_soc_frame(byte frame[], word *stateOfCharge, word *stateOfHealth, word *stateOfChargeHighPrecision) {
+void parse_soc_frame(uint8_t frame[], uint16_t *stateOfCharge, uint16_t *stateOfHealth, uint16_t *stateOfChargeHighPrecision) {
 
     *stateOfCharge = loHi(frame[0], frame[1]);
     *stateOfHealth = loHi(frame[2], frame[3]);
@@ -80,10 +80,10 @@ void parse_soc_frame(byte frame[], word *stateOfCharge, word *stateOfHealth, wor
 
 }
 
-byte *make_voltage_frame(word batteryVoltage, word batteryCurrent, word batteryTemp) {
+uint8_t *make_voltage_frame(uint16_t batteryVoltage, uint16_t batteryCurrent, uint16_t batteryTemp) {
 
-    byte *result = calloc(sizeof (byte), 6);
-    byte *p = result;
+    uint8_t *result = calloc(sizeof (uint8_t), 6);
+    uint8_t *p = result;
 
     *p++ = lowByte(batteryVoltage);
     *p++ = highByte(batteryVoltage);
@@ -96,7 +96,7 @@ byte *make_voltage_frame(word batteryVoltage, word batteryCurrent, word batteryT
 
 }
 
-void parse_voltage_frame(byte frame[], word *batteryVoltage, word *batteryCurrent, word *batteryTemp) {
+void parse_voltage_frame(uint8_t frame[], uint16_t *batteryVoltage, uint16_t *batteryCurrent, uint16_t *batteryTemp) {
 
     *batteryVoltage = loHi(frame[0], frame[1]);
     *batteryCurrent = loHi(frame[2], frame[3]);
