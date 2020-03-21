@@ -1,5 +1,10 @@
 #include "canbus_util.h"
 
+#define lowByte(x) (x & 0xff)
+#define highByte(x) (x >> 8)
+#define loHi(x, y) (x & (y << 8))
+#define leWord(x) (x)
+
 uint8_t *array_dup(uint8_t *src, uint16_t size) {
     
     uint8_t *result = calloc(sizeof(uint8_t), size);
