@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "arduino_util.h"
+//#include "arduino_util.h"
 
 #define SI_CHARGE_PARAMS_FRAME 0x351
 #define SI_VOLTAGE_FRAME 0x356

@@ -9,7 +9,7 @@
 #include <time.h>
 
 int main(int argc, char** argv) {
-
+    
     struct sockaddr_in si_me, si_other;
     int s;
     assert((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) != -1);
@@ -26,10 +26,16 @@ int main(int argc, char** argv) {
     assert(bind(s, (struct sockaddr *) & si_me, sizeof (struct sockaddr)) != -1);
 
     while (1) {
-	char buf[2048];
+	char buf[2048], buf1[2048];
 	unsigned slen = sizeof (struct sockaddr);
 	int bytes = recvfrom(s, buf, sizeof (buf) - 1, 0, (struct sockaddr *) & si_other, &slen);
 
+	// dupe?
+	if(memcmp(buf, buf1, bytes) == 0)
+	    continue;
+	
+	memcpy(buf1, buf, bytes);
+	
 	uint32_t id = *((uint32_t*) buf);
 	time_t t = time(NULL);
 
@@ -39,7 +45,7 @@ int main(int argc, char** argv) {
 	    {
 		uint16_t finalChargeVoltage, maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage;
 		parse_charge_params_frame(&buf[4], &finalChargeVoltage, &maxChargeCurrent, &maxDischargeCurrent, &finalDischargeVoltage);
-		printf("%s Charge params: finalVoltage %hu, maxChargeCurrent %hu, maxDischargeCurrent %hu, finalDischargeVoltage %hu\n", ctime(&t), finalChargeVoltage,
+		printf("%.20s Charge params: finalVoltage %hu, maxChargeCurrent %hu, maxDischargeCurrent %hu, finalDischargeVoltage %hu\n", ctime(&t), finalChargeVoltage,
 			maxChargeCurrent, maxDischargeCurrent, finalDischargeVoltage);
 		break;
 	    }
@@ -47,14 +53,14 @@ int main(int argc, char** argv) {
 	    {
 		uint16_t batteryVoltage, batteryCurrent, batteryTemp;
 		parse_voltage_frame(&buf[4], &batteryVoltage, &batteryCurrent, &batteryTemp);
-		printf("%s Voltage params: batteryVoltage %hu, batteryCurrent %hu, batteryTemp %hu\n", ctime(&t), batteryVoltage, batteryCurrent, batteryTemp);
+		printf("%.20s Voltage params: batteryVoltage %hu, batteryCurrent %hu, batteryTemp %hu\n", ctime(&t), batteryVoltage, batteryCurrent, batteryTemp);
 		break;
 	    }
 	    case SI_SOC_FRAME:
 	    {
 		uint16_t stateOfCharge, stateOfHealth, stateOfChargeHighPrecision;
 		parse_soc_frame(&buf[4], &stateOfCharge, &stateOfHealth, &stateOfChargeHighPrecision);
-		printf("%s States: stateOfCharge %hu, stateOfHealth %hu, stateofChargeHighPrecision %hu\n", ctime(&t), stateOfCharge, stateOfHealth, stateOfChargeHighPrecision);
+		printf("%.20s States: stateOfCharge %hu, stateOfHealth %hu, stateofChargeHighPrecision %hu\n", ctime(&t), stateOfCharge, stateOfHealth, stateOfChargeHighPrecision);
 		break;
 	    }
 	    case SI_ID_FRAME:
@@ -69,7 +75,7 @@ int main(int argc, char** argv) {
 		} id_frame;
 
 		memcpy(&id_frame, &buf[4], sizeof (id_frame));
-		printf("%s ID: capacity %hu\n", ctime(&t), id_frame.capacity);
+		printf("%.20s ID: capacity %hu\n", ctime(&t), id_frame.capacity);
 
 		break;
 	    }
@@ -79,7 +85,7 @@ int main(int argc, char** argv) {
 		char bms_name[100];
 		memcpy(bms_name, &buf[4], bytes - 4);
 		bms_name[bytes - 4] = 0;
-		printf("%s BMS Name: %s\n", ctime(&t), bms_name);
+		printf("%.20s BMS Name: %s\n", ctime(&t), bms_name);
 
 		break;
 	    }
@@ -91,13 +97,13 @@ int main(int argc, char** argv) {
 		} faults;
 
 		memcpy(&faults, &buf[4], sizeof (faults));
-		printf("%s Faults: f0 %hhx, f1 %hhx, f2 %hhx, f3 %hhx\n", ctime(&t), faults.f0, faults.f1, faults.f2, faults.f3);
+		printf("%.20s Faults: f0 %hhx, f1 %hhx, f2 %hhx, f3 %hhx\n", ctime(&t), faults.f0, faults.f1, faults.f2, faults.f3);
 
 		break;
 	    }
 
 	    default:
-		printf("unknown frame type %x\n", id);
+		printf("%.20s unknown frame type %x\n", ctime(&t), id);
 		break;
 
 	}

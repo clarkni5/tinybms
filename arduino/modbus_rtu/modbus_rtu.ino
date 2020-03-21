@@ -18,15 +18,15 @@ const unsigned int SERIAL_BAUD = 9600;
 
 const uint8_t MODBUS_RX_PIN = 2;
 const uint8_t MODBUS_TX_PIN = 3;
-const unsigned int MODBUS_BAUD = 115200;
+const unsigned int MODBUS_BAUD = 9600;
 
 const uint8_t TINYBMS_DEVICE_ID = 0xAA;
 
 // Create the software serial interface
-SoftwareSerial softSerial(MODBUS_RX_PIN, MODBUS_TX_PIN);
+SoftwareSerial *softSerial;
 
 // Create the modbus interface
-Modbus modbus(0, softSerial, 0);
+Modbus *modbus;
 
 uint8_t state;
 unsigned long wait;
@@ -55,7 +55,7 @@ void queryHoldingRegisters(uint16_t u16ReadAddress, uint16_t u16ReadQty, uint16_
   telegram.u16CoilsNo = u16ReadQty;  // number of registers to read
   telegram.au16reg = data;  // pointer to data array
 
-  modbus.query(telegram);
+  modbus->query(telegram);
 }
 
 /**
@@ -72,12 +72,12 @@ int8_t readHoldingRegisters(uint16_t u16ReadAddress, uint16_t u16ReadQty, uint16
   telegram.u16CoilsNo = u16ReadQty;  // number of registers to read
   telegram.au16reg = data;  // pointer to data array
 
-  modbus.query(telegram);
+  modbus->query(telegram);
 
   int8_t status;
   do {
-    status = modbus.poll();
-  } while(modbus.getState() != COM_IDLE);
+    status = modbus->poll();
+  } while(modbus->getState() != COM_IDLE);
 
   if (isResponseStatusOK(status)) {
     return 0;
@@ -99,12 +99,15 @@ boolean isResponseStatusOK(int8_t status) {
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
-  Serial.println("Sketch: modbus_rtu");
-
-  softSerial.begin(MODBUS_BAUD);
+  Serial.println("Sketch: modbus_rtu1");
   
-  modbus.setTimeOut(2000);  // milliseconds (default is 1000)
-  modbus.start();
+  softSerial = new SoftwareSerial(MODBUS_RX_PIN, MODBUS_TX_PIN);
+  modbus = new Modbus(0, *softSerial, 0);
+
+  softSerial->begin(MODBUS_BAUD);
+  
+  modbus->setTimeOut(2000);  // milliseconds (default is 1000)
+  modbus->start();
 
   state = 0;
   wait = millis() + 1000;
@@ -113,6 +116,7 @@ void setup() {
 }
 
 void loop() {
+  
   switch(state) {
   case 0: 
     if (millis() > wait) {
@@ -124,10 +128,10 @@ void loop() {
     queryHoldingRegisters(36, 2, responseData);
     state++;
     break;
-  case 2:
+  case 2: {
     // Check for a response
-    int8_t status = modbus.poll();
-    if (modbus.getState() == COM_IDLE) {
+    int8_t status = modbus->poll();
+    if (modbus->getState() == COM_IDLE) {
       if (isResponseStatusOK(status)) {
         float packVoltage = floatValue(responseData[0], responseData[1]);
         Serial.print("Pack voltage: ");
@@ -137,6 +141,7 @@ void loop() {
       state++;
     }
     break;
+  }
   case 3:
     // Get some metrics on how long it takes to get modbus data
     unsigned short sampleSize = 20;
