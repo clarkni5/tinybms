@@ -145,7 +145,11 @@ void onsend_callback(uint32_t id, uint8_t frame[], uint8_t len) {
 		uint8_t *datagram = malloc(4 + len);
 		memcpy(datagram, &id, 4);
 		memcpy(&datagram[4], frame, len);
-		wifi_send_data(datagram, 4 + len);
+
+		for(int i = 0; i < 10; i++) {
+			wifi_send_data(datagram, 4 + len);
+		}
+
 		free(datagram);
 	}
 

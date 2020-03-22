@@ -76,7 +76,7 @@ void decode_frame(uint8_t *frame, int len) {
         }
 
         default:
-            printf("unknown frame type %x\n", id);
+            printf("%.19s unknown frame type %x\n", ctime(&t), id);
             break;
 
     }
@@ -84,12 +84,12 @@ void decode_frame(uint8_t *frame, int len) {
 }
 
 int main(int argc, char** argv) {
-
+    
     struct sockaddr_in si_me, si_other;
     int sock;
     int broadcast = 1;
     uint16_t port = 1080;
-    uint8_t buf[2048];
+    uint8_t buf[2048], buf1[2048];
 
     assert((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) != -1);
 
@@ -108,6 +108,12 @@ int main(int argc, char** argv) {
 
         unsigned slen = sizeof (struct sockaddr);
         int bytes = recvfrom(sock, buf, sizeof (buf), 0, (struct sockaddr *) & si_other, &slen);
+
+	// dupe?
+	if(memcmp(buf, buf1, bytes) == 0)
+	    continue;
+	
+	memcpy(buf1, buf, bytes);
         
         decode_frame(buf, slen);
 
