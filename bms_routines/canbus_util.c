@@ -10,40 +10,14 @@ uint8_t *array_dup(uint8_t *src, uint16_t size) {
     
 }
 
-uint8_t *make_charge_params_frame(uint16_t finalChargeVoltage, uint16_t maxChargeCurrent, uint16_t maxDischargeCurrent, uint16_t finalDischargeVoltage) {
+uint8_t* make_charge_params_frame(uint16_t finalChargeVoltage,
+		uint16_t maxChargeCurrent, uint16_t maxDischargeCurrent,
+		uint16_t finalDischargeVoltage) {
 
-    uint8_t *result = calloc(sizeof (uint8_t), 6);
-    uint8_t *p = result;
+	uint16_t frame[] = { leWord(finalChargeVoltage), leWord(maxChargeCurrent),
+			leWord(maxDischargeCurrent), leWord(finalDischargeVoltage) };
 
-    *p++ = lowByte(finalChargeVoltage);
-    *p++ = highByte(finalChargeVoltage);
-    *p++ = lowByte(maxChargeCurrent);
-    *p++ = highByte(maxChargeCurrent);
-    *p++ = lowByte(finalDischargeVoltage);
-    *p++ = highByte(finalDischargeVoltage);
-
-    return result;
-
-}
-
-uint8_t *make_charge_params_frame2(uint16_t finalChargeVoltage, uint16_t maxChargeCurrent, uint16_t maxDischargeCurrent, uint16_t finalDischargeVoltage) {
-
-    uint16_t *result = calloc(sizeof (uint16_t), 3);
-    uint16_t *p = result;
-
-    *p++ = leWord(finalChargeVoltage);
-    *p++ = leWord(maxChargeCurrent);
-    *p++ = leWord(finalDischargeVoltage);
-
-    return (uint8_t*)result;
-
-}
-
-uint8_t *make_charge_params_frame3(uint16_t finalChargeVoltage, uint16_t maxChargeCurrent, uint16_t maxDischargeCurrent, uint16_t finalDischargeVoltage) {
-    
-    uint16_t frame[] = {leWord(finalChargeVoltage), leWord(maxChargeCurrent), leWord(maxDischargeCurrent), leWord(finalDischargeVoltage)};
-
-    return array_dup((uint8_t*)frame, sizeof(frame));
+	return array_dup((uint8_t*) frame, sizeof(frame));
 
 }
 
@@ -56,19 +30,13 @@ void parse_charge_params_frame(uint8_t frame[], uint16_t *finalChargeVoltage, ui
 
 }
 
-uint8_t *make_soc_frame(uint16_t stateOfCharge, uint16_t stateOfHealth, uint16_t stateOfChargeHighPrecision) {
+uint8_t* make_soc_frame(uint16_t stateOfCharge, uint16_t stateOfHealth,
+		uint16_t stateOfChargeHighPrecision) {
 
-    uint8_t *result = calloc(sizeof (uint8_t), 6);
-    uint8_t *p = result;
+	uint16_t frame[] = { leWord(stateOfCharge), leWord(stateOfHealth), leWord(
+			stateOfChargeHighPrecision) };
 
-    *p++ = lowByte(stateOfCharge);
-    *p++ = highByte(stateOfCharge);
-    *p++ = lowByte(stateOfHealth);
-    *p++ = highByte(stateOfHealth);
-    *p++ = lowByte(stateOfChargeHighPrecision);
-    *p++ = highByte(stateOfChargeHighPrecision);
-
-    return result;
+	return array_dup((uint8_t*) frame, sizeof(frame));
 
 }
 
@@ -80,19 +48,13 @@ void parse_soc_frame(uint8_t frame[], uint16_t *stateOfCharge, uint16_t *stateOf
 
 }
 
-uint8_t *make_voltage_frame(uint16_t batteryVoltage, uint16_t batteryCurrent, uint16_t batteryTemp) {
+uint8_t* make_voltage_frame(uint16_t batteryVoltage, uint16_t batteryCurrent,
+		uint16_t batteryTemp) {
 
-    uint8_t *result = calloc(sizeof (uint8_t), 6);
-    uint8_t *p = result;
+	uint16_t frame[] = { leWord(batteryVoltage), leWord(batteryCurrent), leWord(
+			batteryTemp) };
 
-    *p++ = lowByte(batteryVoltage);
-    *p++ = highByte(batteryVoltage);
-    *p++ = lowByte(batteryCurrent);
-    *p++ = highByte(batteryCurrent);
-    *p++ = lowByte(batteryTemp);
-    *p++ = highByte(batteryTemp);
-
-    return result;
+	return array_dup((uint8_t*) frame, sizeof(frame));
 
 }
 

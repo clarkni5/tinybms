@@ -4,7 +4,6 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>arduino_util.h</itemPath>
       <itemPath>canbus_util.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -39,8 +38,6 @@
       </toolsSet>
       <compileType>
       </compileType>
-      <item path="arduino_util.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="canbus_util.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="canbus_util.h" ex="false" tool="3" flavor2="0">
@@ -68,8 +65,6 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="arduino_util.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="canbus_util.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="canbus_util.h" ex="false" tool="3" flavor2="0">
