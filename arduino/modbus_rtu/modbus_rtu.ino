@@ -171,8 +171,6 @@ void loop() {
       Serial.print(elapsedTime / j);
       Serial.print(", errorCount=");
       Serial.print(errorCount);
-      Serial.print(", errorRate=");
-      Serial.print(errorCount / j);
       Serial.println("");
     }
   
@@ -202,8 +200,6 @@ void loop() {
       Serial.print(elapsedTime / j);
       Serial.print(", errorCount=");
       Serial.print(errorCount);
-      Serial.print(", errorRate=");
-      Serial.print(errorCount / j);
       Serial.println("");
     }
   
@@ -233,8 +229,6 @@ void loop() {
       Serial.print(elapsedTime / j);
       Serial.print(", errorCount=");
       Serial.print(errorCount);
-      Serial.print(", errorRate=");
-      Serial.print(errorCount / j);
       Serial.println("");
     }
   

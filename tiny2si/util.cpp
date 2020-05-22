@@ -27,6 +27,12 @@ void serial_printf(const char *fmt, ...) {
 	va_end(argp);
 }
 
+/*
+ * The follow code is taken from this library:
+ * https://github.com/mpflaga/Arduino-MemoryFree/
+ *
+ * Use freeMemory() to report the amount of free SRAM.
+ */
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
 extern "C" char* sbrk(int incr);

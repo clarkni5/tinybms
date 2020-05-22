@@ -56,8 +56,10 @@ void load_battery_data() {
 void dump_battery_data() {
 
 	uint8_t k;
-	char cls[] = { 27, '[', '2', 'J', 27, '[', 'H', 0 };
 
+	// ANSI escape sequence to clear the screen and move the cursor to the
+	// upper left corner.
+	char cls[] = { 27, '[', '2', 'J', 27, '[', 'H', 0 };
 	serial_bprintf(buf, cls);
 
 	print_age("config", battery_config.last_success);

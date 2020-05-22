@@ -1,23 +1,268 @@
 Design ideas, thoughts, and comments
 ====================================
 
-Modbus over software serial does work with the Arduino Uno, but using the
-hardware serial is much faster and very reliable.
+Modbus over software serial will work with the Tiny BMS, but there is a high 
+rate of CRC errors and timeouts. Modbus over hardware serial is very reliable.
 
-TODO: Figure out a software serial solution for debugging.
+A critical fault (F952 ExtBMSTimeout) will occur and the Sunny Island will 
+automatically go into standby mode if it does not received CAN message 0x355 
+for 60 seconds. Once communication is restored, the Sunny Island will 
+automatically restart on its own.
 
-Per the documentation for REC BMS and Elithion, we should plan to send CAN bus 
-messages to the Sunny every 2 seconds. If I am reading it correctly, the REC 
-BMS documentation specifies a delay of 210ms between CAN messages. This leaves 
-~740ms to get and process the data.
+The other CAN messages (0x351, 0x356, 0x35A, 0x35E, and 0x35F) are not required
+on a regular interval.
 
-The Sunny Island will throw a fault (F952 ExtBMSTimeout) and go into standby mode if it has not received CAN bus messages for 60 seconds. Once communication is restored, it will automatically auto-start the inverter.
+Elithion BMS and REC BMS send CAN messages every 1-second. REC BMS sends CAN 
+messages with a 210 ms interval between messages. I have not observed any 
+problems sending CAN messages with no interval between messages.
 
-All fault flags will cause the Sunny Island to go into standby mode and shows the fault on the display. The inverter must be manually started even if the fault flag has cleared. You can start the inverter with the fault flag set, but any new fault flag will cause the Sunny Island to go into stanby mode.
+All fault flags in CAN message 0x35A will cause the Sunny Island to go into 
+standby mode and it will show the fault on the display. The inverter must be 
+manually started even if the fault flag has been removed. You can restart the 
+inverter with the fault flag set, but any new fault flags will cause the Sunny 
+Island to go back into stanby mode.
 
-Warning flags will show an exclamation mark (!) on the main display, but the actual warning is only visible from the menu (410# Failures Current).
+Warning flags will show an exclamation mark (!) on the main display, but the 
+warning message is only visible from the menu (410# Failures Current).
 
-See battery capacity calculation, page 108
+The documentation says that "the external battery management transfers the 
+battery temperature to the Sunny Island and thus replaces the battery 
+temperature sensor", but the Sunny Island continues to show the temperature from
+its own sensor. If you do not connect the battery temperature sensor that comes 
+with the Sunny Island, a warning (W723 BatTmpSnsOpn) will occur. The temperature 
+sent in CAN message 0x356 can only be found in the logs on the SD card under 
+SimBatTmp. I have not been able to trigger any warnings or faults from the 
+temperature sent in CAN message 0x356. It is not clear if this value is used.
+
+When the voltage observed by the Sunny Island drops below the final discharge 
+voltage specified in CAN message 0x351, a critical fault (F213 BatVtgLow) will 
+occur and the Sunny Island will automatically go into standby mode. When the 
+voltage returns to a value greater than or equal to this threshold, the Sunny 
+Island will automatically restart on its own.
+
+The charge final voltage from CAN message 0x351 is visible from menu 
+120.03#BatChrgVtg, but it is always 1V lower than the value specified. This may 
+be the value used during the constant current chargin phase. During the charging
+process, this value will increase to match the value in CAN message 0x351. This
+may correspond to the contastant voltage charging phase. SMA has a technical
+document titled "Battery Management of the Sunny Island" that explains the 
+different charing phases, but it does not have any specific details for lithium
+batteries.
+
+The SOC is visible from the main display. The high-precision SOC is visible 
+in menu 120.01#BatSoc. SOH is visible in menu 320.01#Soh
+
+When the SOC is low enough, a warning will be displayed W757 LoBatMod3.
+When the SOC reaches 5% for 10 minutes, the Sunny Island will turn off and 
+the display will say, "LBM wait for power off".
+
+See battery capacity calculation, page 108.
+
+Summary
+- Discharge final voltage works
+- Charge current limit works
+- SOC works
+- SOH works
+- The Sunny Island uses its own measurements for votlage, current, and temperature
+- All fault and warning flags work
+
+Thoughts
+========
+We probably want to set the final discharge voltage to be at least 0.2 V higher
+than the TinyBMS value so that the Sunny Island will go into standby mode when 
+the voltage is 0.1 V higher than the TinyBMS.
+
+
+CAN messages
+============
+
+Bit-rate: 500 kbps
+Number of data bytes: 8
+
+```
+CAN message 0x351
+-------------------------------------------------------------------------------
+Byte | Description                       | Type             | Property
+-------------------------------------------------------------------------------
+1    | Charge final voltage low byte     | Unsigned integer | LSB = 0.1 V
+2    | Charge final voltage high byte    |                  |
+-------------------------------------------------------------------------------
+3    | Charge current limit low byte     | Signed integer   | LSB = 0.1 A
+4    | Charge current limit high byte    |                  |
+-------------------------------------------------------------------------------
+5    | Discharge current limit low byte  | Signed integer   | LSB = 0.1 A
+6    | Discharge current limit high byte |                  |
+-------------------------------------------------------------------------------
+7    | Discharge final voltage low byte  | Unsigned integer | LSB = 0.1 V
+8    | Discharge final voltage high byte |                  |
+-------------------------------------------------------------------------------
+
+
+
+CAN message 0x355
+-------------------------------------------------------------------------------
+Byte | Description                       | Type             | Property
+-------------------------------------------------------------------------------
+1    | SOC low byte                      | Unsigned integer | LSB = 1 %
+2    | SOC high byte                     |                  |
+-------------------------------------------------------------------------------
+3    | SOH low byte                      | Unsigned integer | LSB = 1 %
+4    | SOH high byte                     |                  |
+-------------------------------------------------------------------------------
+5    | SOC high precision low byte       | Unsigned integer | LSB = 0.01 %
+6    | SOC high precision high byte      |                  |
+-------------------------------------------------------------------------------
+
+
+CAN message 0x356
+-------------------------------------------------------------------------------
+Byte | Description                       | Type             | Property
+-------------------------------------------------------------------------------
+1    | Battery voltage low byte          | Signed integer   | LSB = 0.01 V
+2    | Battery voltage high byte         |                  |
+-------------------------------------------------------------------------------
+3    | Battery current low byte          | Signed integer   | LSB = 0.1 A
+4    | Battery current high byte         |                  | Discharge current is positive
+-------------------------------------------------------------------------------
+5    | Battery temperature low byte      | Signed integer   | LSB = 0.1 °C
+6    | Battery temperature high byte     |                  |
+-------------------------------------------------------------------------------
+
+
+CAN message 0x35A
+-------------------------------------------------------------------------------
+Byte | Description                       | Type             | Property
+-------------------------------------------------------------------------------
+1    | Fault byte 1                      | Unsigned char    | Bit-orientated 
+------------------------------------------------------------| fault structure
+2    | Fault byte 2                      | Unsigned char    |
+------------------------------------------------------------|
+3    | Fault byte 3                      | Unsigned char    |
+------------------------------------------------------------|
+4    | Fault byte 4                      | Unsigned char    |
+-------------------------------------------------------------------------------
+5    | Warning byte 1                    | Unsigned char    | Bit-orientated
+------------------------------------------------------------| warning structure
+6    | Warning byte 2                    | Unsigned char    |
+------------------------------------------------------------|
+7    | Warning byte 3                    | Unsigned char    |
+------------------------------------------------------------|
+8    | Warning byte 4                    | Unsigned char    |
+-------------------------------------------------------------------------------
+
+
+CAN message 0x35E
+-------------------------------------------------------------------------------
+Byte | Description                       | Type             | Property
+-------------------------------------------------------------------------------
+1    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+2    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+3    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+4    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+5    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+6    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+7    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+8    | ASCII character                   | Char             |
+-------------------------------------------------------------------------------
+
+
+CAN message 0x35F
+-------------------------------------------------------------------------------
+Byte | Description                       | Type             | Property
+-------------------------------------------------------------------------------
+1    | Chemistry low byte                | Unsigned integer | 0x4C = ASCII "L"
+2    | Chemistry high byte               |                  | 0x69 = ASCII "i"
+-------------------------------------------------------------------------------
+3    | BMS HW version low byte           | Unsigned char    |
+4    | BMS HW version high byte 0        |                  |
+-------------------------------------------------------------------------------
+5    | Capacity low byte                 | Unsigned integer | LSB = 1 Ah
+6    | Capacity high byte                |                  |
+-------------------------------------------------------------------------------
+7    | BMS SW version low byte           | Unsigned char    |
+8    | BMS SW version high byte 0        |                  |
+-------------------------------------------------------------------------------
+
+
+Bit-orientated fault structure for CAN message 0x35A
+-------------------------------------------------------------------------------
+Byte | Value      | Description
+-------------------------------------------------------------------------------
+0    | 0b00000001 | General (F920 XA01 General)
+0    | 0b00000100 | Battery overvoltage (F921 XA02 DcHiVolt)
+0    | 0b00010000 | Battery undervoltage (F922 XA03 DcLoVolt)
+0    | 0b01000000 | Battery overtemperature (F923 XA04 DcHiTmp)
+-------------------------------------------------------------------------------
+1    | 0b00000001 | Battery undertemperature (F924 XA05 DcLoTmp)
+1    | 0b00000100 | Battery overtemperature in charge mode (F925 XA06 DcHiTmpC)
+1    | 0b00010000 | Battery undertemperature in charge mode (F926 XA07 DcLoTmpC)
+1    | 0b01000000 | Battery discharge current too high (F927 XA08 DcHiCur)
+-------------------------------------------------------------------------------
+2    | 0b00000001 | Battery charging current too high (F928 XA09 DcHiChgCur)
+2    | 0b00000100 | Contactor (F929 XA10 Contact)
+2    | 0b00010000 | Short circuit (F930 XA11 Short)
+2    | 0b01000000 | Internal error in battery management (F931 XA12 BMS)
+-------------------------------------------------------------------------------
+3    | 0b00000001 | Different state of charge of the battery cells (F932 XA13 CellBal)
+3    | 0b00000100 | Not used (F933 XA14)
+3    | 0b00010000 | Not used (F934 XA15)
+3    | 0b01000000 | Error in the generator (F935 XA16 Generator)
+-------------------------------------------------------------------------------
+* Multiple faults can be set using bitwise OR
+
+
+Bit-orientated warning structure for CAN message 0x35A
+-------------------------------------------------------------------------------
+Byte | Value      | Description
+-------------------------------------------------------------------------------
+4    | 0b00000001 | General (W936 XW01 General)
+4    | 0b00000100 | Battery overvoltage (W937 XW02 DcHiVolt)
+4    | 0b00010000 | Battery undervoltage (W938 XW03 DcLoVolt)
+4    | 0b01000000 | Battery overtemperature (W939 XW04 DcHiTmp)
+-------------------------------------------------------------------------------
+5    | 0b00000001 | Battery undertemperature (W940 XW05 DcLoTmp)
+5    | 0b00000100 | Battery overtemperature in charge mode (W941 XW06 DcHiTmpC)
+5    | 0b00010000 | Battery undertemperature in charge mode (W942 XW07 DcLoTmpC)
+5    | 0b01000000 | Battery discharge current too high (W943 XW08 DcHiCur)
+-------------------------------------------------------------------------------
+6    | 0b00000001 | Battery charging current too high (W944 XW09 DcHiChgCur)
+6    | 0b00000100 | Contactor (W945 XW10 Contact)
+6    | 0b00010000 | Short circuit (W946 XW11 Short)
+6    | 0b01000000 | Internal error in battery management (W947 XW12 BMS)
+-------------------------------------------------------------------------------
+7    | 0b00000001 | Different state of charge of the battery cells (W948 XW13 CellBal)
+7    | 0b00000100 | Not used (W949 XW14)
+7    | 0b00010000 | Not used (W950 XW15)
+7    | 0b01000000 | Error in the generator (W951 XW16 Generator)
+-------------------------------------------------------------------------------
+* Multiple warnings can be set using bitwise OR
+
+```
+
+SD card data
+============
+finalChargeVoltage appears under "BatChrgVtg (Avg)" but is always 1V less than specified
+maxChargeCurrent appears under BatChrgCur
+maxDischargeCurrent appears under BatDiChgCur
+finalDischargeVoltage NA
+
+StateOfCharge appears under BatSoc (Avg)
+stateOfHealth appears under Soh (Avg)
+stateOfChargeHighPrecision NA
+
+batteryVoltage appears under SimBatVtg
+batteryCurrent appears under SimBatCur
+batteryTemp appears under SimBatTmp
+
+Scratch pad
+===========
 
 Loop
     Get / update data from the Tiny
@@ -60,90 +305,3 @@ Infrequent data
 ===============
 Number of cells detected -> register 53
 hardwareVersion -> register 500
-
-
-Faults and warnings
-===================
-Here is the key for the tables below:
-[message 0x35A byte index] binary value // description
-
-Faults
-======
-[0] 0b00000001 // General (F920 XA01 General)
-[0] 0b00000100 // Battery overvoltage (F921 XA02 DcHiVolt)
-[0] 0b00010000 // Battery undervoltage (F922 XA03 DcLoVolt)
-[0] 0b01000000 // Battery overtemperature (F923 XA04 DcHiTmp)
-
-[1] 0b00000001 // Battery undertemperature (F924 XA05 DcLoTmp)
-[1] 0b00000100 // Battery overtemperature in charge mode (F925 XA06 DcHiTmpC)
-[1] 0b00010000 // Battery undertemperature in charge mode (F926 XA07 DcLoTmpC)
-[1] 0b01000000 // Battery discharge current too high (F927 XA08 DcHiCur)
-
-[2] 0b00000001 // Battery charging current too high (F928 XA09 DcHiChgCur)
-[2] 0b00000100 // Contactor (F929 XA10 Contact)
-[2] 0b00010000 // Short circuit (F930 XA11 Short)
-[2] 0b01000000 // Internal error in battery management (F931 XA12 BMS)
-
-[3] 0b00000001 // Different state of charge of the battery cells (F932 XA13 CellBal)
-[3] 0b00000100 // Not used (F933 XA14)
-[3] 0b00010000 // Not used (F934 XA15)
-[3] 0b01000000 // Error in the generator (F935 XA16 Generator)
-
-Warnings
-========
-[4] 0b00000001 // General (W936 XW01 General)
-[4] 0b00000100 // Battery overvoltage (W937 XW02 DcHiVolt)
-[4] 0b00010000 // Battery undervoltage (W938 XW03 DcLoVolt)
-[4] 0b01000000 // Battery overtemperature (W939 XW04 DcHiTmp)
-
-[5] 0b00000001 // Battery undertemperature (W940 XW05 DcLoTmp)
-[5] 0b00000100 // Battery overtemperature in charge mode (W941 XW06 DcHiTmpC)
-[5] 0b00010000 // Battery undertemperature in charge mode (W942 XW07 DcLoTmpC)
-[5] 0b01000000 // Battery discharge current too high (W943 XW08 DcHiCur)
-
-[6] 0b00000001 // Battery charging current too high (W944 XW09 DcHiChgCur)
-[6] 0b00000100 // Contactor (W945 XW10 Contact)
-[6] 0b00010000 // Short circuit (W946 XW11 Short)
-[6] 0b01000000 // Internal error in battery management (W947 XW12 BMS)
-
-[7] 0b00000001 // Different state of charge of the battery cells (W948 XW13 CellBal)
-[7] 0b00000100 // Not used (W949 XW14)
-[7] 0b00010000 // Not used (W950 XW15)
-[7] 0b01000000 // Error in the generator (W951 XW16 Generator)
-
-
-Interesting flow-control pattern
-================================
-
-This pattern is used in the ModbusRtu library examples. It allows the loop to 
-frequently return control back to the system.
-
----
-
-unsigned long wait;
-uint8_t state;
-
-void setup() {
-  wait = millis() + 1000;
-  state = 0;
-}
-
-void loop() {
-switch(state) {
-  case 0: 
-    if (millis() > wait) state++;  // wait state
-    break;
-  case 1: 
-    // Do thing A
-    state++;
-    break;
-  case 2:
-    // Is the thingamabob ready?
-    thingamabob.poll();
-    if (thingamabob.getState() == COM_IDLE) {
-      // Do thing B
-      state = 0;
-      wait = millis() + 2000; 
-    }
-    break;
-  }
