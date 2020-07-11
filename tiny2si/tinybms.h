@@ -8,14 +8,15 @@
 
 #include <Arduino.h>
 #include <ModbusMaster.h>
+#include "util.h"
 
-extern HardwareSerial Serial2; // D17 RX, D16 TX
-#define serial (&Serial2)
+extern HardwareSerial Serial1;  // D19 RX, D18 TX
+#define serial (&Serial1)
 
 #define MODBUS_BAUD 115200
 
 #define TINYBMS_DEVICE_ID 0xAA
-#define MODBUS_INTERVAL 100
+#define MODBUS_INTERVAL 0
 #define MODBUS_RETRY_INTERVAL 100
 #define MODBUS_RETRY_COUNT 10
 
@@ -26,9 +27,12 @@ extern HardwareSerial Serial2; // D17 RX, D16 TX
 #define PACK_CURRENT_REGISTER_0 38
 #define MIN_CELL_VOLTAGE_REGISTER 40
 #define MAX_CELL_VOLTAGE_REGISTER 41
-#define MAX_DISCHARGE_CURRENT_REGISTER 317
-#define MAX_CHARGE_CURRENT_REGISTER 318
+#define DISCHARGE_OVERCURRENT_CUTOFF_REGISTER 317
+#define CHARGE_OVERCURRENT_CUTOFF_REGISTER 318
 #define PACK_CAPACITY_REGISTER 306
+#define INTERNAL_TEMP_REGISTER 48
+#define EXTERNAL_TEMP_1_REGISTER 42
+#define EXTERNAL_TEMP_2_REGISTER 43
 #define PACK_SOC_REGISTER_0 46
 #define PACK_SOC2_REGISTER 328
 #define BMS_VERSION_REGISTER_0 500
@@ -40,6 +44,7 @@ extern ModbusMaster *modbus;
 
 typedef struct _battery_safety_params {
 
+	// TODO Rename final_ ???, make float?
 	uint16_t cell_charged_v;
 	uint16_t cell_discharged_v;
 
@@ -67,9 +72,15 @@ typedef struct _battery_voltage {
 
 typedef struct _battery_current {
 
-	float pack_current;
-	uint16_t max_discharge_current;
-	uint16_t max_charge_current;
+	union _pack_current {
+
+		float fcurrent;
+		uint16_t icurrent[2];
+
+	} pack_current;
+
+	uint16_t discharge_overcurrent_cutoff;
+	uint16_t charge_overcurrent_cutoff;
 
 	unsigned long last_success;
 
@@ -93,6 +104,16 @@ typedef struct _battery_soc {
 	unsigned long last_success;
 
 } Battery_soc;
+
+typedef struct _battery_temp {
+
+	int16_t onboard_temp;
+	int16_t external_temp_1;
+	int16_t external_temp_2;
+
+	unsigned long last_success;
+
+} Battery_temp;
 
 typedef struct _bms_version {
 
@@ -120,18 +141,36 @@ typedef struct _bms_version {
 
 } Bms_version __attribute__((packed));
 
+typedef struct _battery_sampling {
+
+	union _pack_current {
+
+		float fcurrent;
+		uint16_t icurrent[2];
+
+	} pack_current;
+
+	float pack_current_sum = 0;
+	uint16_t pack_current_count = 0;
+
+	float min_pack_current = FLOAT_MAX;
+	float max_pack_current = FLOAT_MIN;
+
+} Battery_sampling;
+
 void init_tinybms();
 void reset_tinybms();
-int readRegistersWithRetry(uint16_t idx, uint16_t count, uint16_t *dest,
-		uint8_t retrcnt);
+int readRegistersWithRetry(uint16_t idx, uint16_t count, uint16_t *dest, uint8_t retrcnt);
 int load_battery_voltage(Battery_config *config, Battery_voltage *voltage);
+int sample_battery_pack_current(Battery_sampling *battery_sampling);
 int load_battery_current(Battery_current *current);
+int load_battery_temp(Battery_temp *battery_temp);
 int load_battery_config(Battery_config *config);
 int load_battery_soc(Battery_soc *soc);
 int load_battery_soc2(Battery_soc *soc);
 int load_battery_safety(Battery_safety_params *safp);
 
 int load_bms_version(Bms_version *ver);
-int read_register(uint16_t idx, uint8_t count, uint16_t *dest);
+//int read_register(uint16_t idx, uint8_t count, uint16_t *dest);
 
 #endif

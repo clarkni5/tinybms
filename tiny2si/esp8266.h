@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-extern HardwareSerial Serial3; // D15 RX, D14 TX
+extern HardwareSerial Serial3;  // D15 RX, D14 TX
 #define wifiSerial (&Serial3)
 
 #define WIFI_BAUD 115200

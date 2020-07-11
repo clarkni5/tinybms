@@ -1,23 +1,34 @@
 #include <Arduino.h>
-#include "util.h"
-#include "tinybms.h"
 #include "sunnyisland.h"
-#include "esp8266.h"
+#include "telemetry.h"
+#include "tinybms.h"
+#include "util.h"
 
 #define SERIAL_BAUD 9600
-#define POLL_INTERVAL 10000
+
+#define LOOP_PROCESS_INTERVAL 10000  // milliseconds
+
+// The Tiny BMS measures battery pack current at a rate of 10 Hz (every 100 ms)
+#define LOOP_SAMPLING_INTERVAL 100  // milliseconds
 
 #define print_age(x,y) 	(serial_bprintf(buf, "%s data is %us old\r\n", x, (millis() - y) / 1000))
 
 Battery_config battery_config;
 Battery_voltage battery_voltage;
 Battery_current battery_current;
+Battery_temp battery_temp;
 Battery_soc battery_soc;
 Battery_safety_params battery_safety;
 Bms_version bms_version;
+Battery_sampling battery_sampling;
 
 char buf[128];
-char wifi_avail = 0;
+
+uint16_t loop_duration = 0;
+int free_memory = 0;
+
+unsigned long next_process_time = 0;
+unsigned long next_sampling_time = 0;
 
 void setup() {
 
@@ -27,12 +38,12 @@ void setup() {
 	init_tinybms();
 //	reset_tinybms();
 	init_sunnyisland();
-	if (init_wifi()) {
-		wifi_avail = 1;
-		serial_bprintf(buf, "Wifi initialized\r\n");
-	}
+	init_telemetry();
 
 	delay(2000);
+
+	free_memory = get_free_memory();
+
 	serial_bprintf(buf, "Init OK\r\n");
 
 }
@@ -46,14 +57,37 @@ void load_battery_data() {
 	if (battery_config.last_success == 0) {
 		load_battery_config(&battery_config);
 	}
+
 	load_battery_voltage(&battery_config, &battery_voltage);
 	load_battery_current(&battery_current);
+	load_battery_temp(&battery_temp);
 	load_battery_soc(&battery_soc);
 	load_battery_safety(&battery_safety);
 
+	// The battery pack current can fluctuate a lot over a short period of time, so we use the sampling data to
+	// calculate the average current.
+	float avg_current = 0;
+	if (battery_sampling.pack_current_count > 0) {
+		avg_current = battery_sampling.pack_current_sum / battery_sampling.pack_current_count;
+	}
+	battery_current.pack_current.fcurrent = avg_current;
+
 }
 
-void dump_battery_data() {
+void reset_sampling_data() {
+
+	battery_sampling.pack_current_sum = 0;
+	battery_sampling.pack_current_count = 0;
+
+}
+
+void load_battery_sampling_data() {
+
+	sample_battery_pack_current(&battery_sampling);
+
+}
+
+void print_data() {
 
 	uint8_t k;
 
@@ -62,152 +96,154 @@ void dump_battery_data() {
 	char cls[] = { 27, '[', '2', 'J', 27, '[', 'H', 0 };
 	serial_bprintf(buf, cls);
 
-	print_age("config", battery_config.last_success);
+	print_age("Config", battery_config.last_success);
 
-	serial_bprintf(buf, "%u configured cells\r\n", battery_config.cell_count);
-	serial_bprintf(buf, "capacity %uAh\r\n", battery_config.capacity);
+	serial_bprintf(buf, "%hu configured cells\r\n", battery_config.cell_count);
+	serial_bprintf(buf, "Capacity %huAh\r\n", battery_config.capacity);
 
 	for (k = 0; k < battery_config.cell_count; k++) {
-		serial_bprintf(buf, "Cell %hhu voltage: %3.2fV\r\n",
+		serial_bprintf(buf, "Cell %hu voltage: %4.2fV\r\n",
 				battery_config.cell_count - k,
 				battery_voltage.cell_voltage[k] / 10000.0);
 	}
 
-	print_age("voltage", battery_voltage.last_success);
+	print_age("Voltage", battery_voltage.last_success);
 
-	serial_bprintf(buf, "Pack voltage: %3.2fV\r\n",
-			battery_voltage.pack_voltage.fvoltage);
-
-	serial_bprintf(buf, "Min cell voltage: %3.2fV\r\n",
-			battery_voltage.min_cell_voltage / 1000.0);
-	serial_bprintf(buf, "Max cell voltage: %3.2fV\r\n",
+	serial_bprintf(buf, "Pack voltage: %4.2fV\r\n", battery_voltage.pack_voltage.fvoltage);
+	serial_bprintf(buf, "Min cell voltage: %4.2fV, max cell voltage: %4.2fV\r\n",
+			battery_voltage.min_cell_voltage / 1000.0,
 			battery_voltage.max_cell_voltage / 1000.0);
 
 	serial_bprintf(buf, "\r\n");
 
-	print_age("current", battery_current.last_success);
+	print_age("Current", battery_current.last_success);
 
-	serial_bprintf(buf, "Pack current: %3.2fA\r\n",
-			battery_current.pack_current);
-	serial_bprintf(buf, "Max discharge current: %uA\r\n",
-			battery_current.max_discharge_current);
-	serial_bprintf(buf, "Max charge current: %uA\r\n",
-			battery_current.max_charge_current);
+	serial_bprintf(buf, "Pack current: %4.2fA\r\n", battery_current.pack_current.fcurrent);
+	serial_bprintf(buf, "Max charge current: %huA, max discharge current: %huA\r\n",
+			battery_current.charge_overcurrent_cutoff,
+			battery_current.discharge_overcurrent_cutoff);
 
 	serial_bprintf(buf, "\r\n");
 
-	print_age("soc", battery_current.last_success);
+	print_age("Temperature", battery_temp.last_success);
 
-	serial_bprintf(buf, "Pack SOC: %hu%%\r\n", battery_soc.stateOfCharge);
-	serial_bprintf(buf, "Pack SOC hp: %lu\r\n", battery_soc.stateOfChargeHp);
-	serial_bprintf(buf, "Pack SOH : %hu%%\r\n", battery_soc.stateOfHealth);
-
-	serial_bprintf(buf, "\r\n");
-
-	print_age("safety", battery_safety.last_success);
-
-	serial_bprintf(buf, "Cell fully charged: %3.2fV\r\n",
-			battery_safety.cell_charged_v / 1000.0);
-	serial_bprintf(buf, "Cell fully discharged: %3.2fV\r\n",
-			battery_safety.cell_discharged_v / 1000.0);
+	serial_bprintf(buf, "Onboard temperature: %3.1fC\r\n", battery_temp.onboard_temp / 10.0);
+	serial_bprintf(buf, "External temperature 1: %3.1fC, external temperature 2: %3.1fC\r\n",
+			battery_temp.external_temp_1 / 10.0, battery_temp.external_temp_2 / 10.0);
 
 	serial_bprintf(buf, "\r\n");
 
-	print_age("BMS ver", bms_version.last_success);
+	print_age("SOC", battery_current.last_success);
+
+	serial_bprintf(buf, "Pack SOC: %hu%%, HP SOC: %8.6f%%\r\n",
+			battery_soc.stateOfCharge,
+			(float) battery_soc.stateOfChargeHp / 1000000);
+	serial_bprintf(buf, "Pack SOH: %hu%%\r\n", battery_soc.stateOfHealth);
+
+	serial_bprintf(buf, "\r\n");
+
+	print_age("Safety", battery_safety.last_success);
+
+	serial_bprintf(buf, "Cell fully charged: %4.2fV, pack fully charged: %4.2fV\r\n",
+			battery_safety.cell_charged_v / 1000.0,
+			(battery_safety.cell_charged_v / 1000.0) * battery_config.cell_count);
+	serial_bprintf(buf, "Cell fully discharged: %4.2fV, pack fully discharged: %4.2fV\r\n",
+			battery_safety.cell_discharged_v / 1000.0,
+			(battery_safety.cell_discharged_v / 1000.0) * battery_config.cell_count);
+
+	serial_bprintf(buf, "\r\n");
+
+	print_age("BMS version", bms_version.last_success);
 
 	serial_bprintf(buf,
-			"Hardware Version %hhu, Hardware Changes Version %hu\r\n",
+			"Hardware version %hhu, hardware changes version %hhu\r\n",
 			bms_version.hw_ver.hw_version, bms_version.hw_ver.hw_ch_version);
 	serial_bprintf(buf,
-			"Public Release Firmware Version %hhu, BPT %hhhx BCS %hhhx\r\n",
-			bms_version.fw_ver.fw_version, bms_version.fw_ver.bpt,
-			bms_version.fw_ver.bcs);
-	serial_bprintf(buf, "Internal Firmware Version %u\r\n",
-			bms_version.int_fw_ver);
-	serial_bprintf(buf, "Bootloader version %hu, Profile Version %hu\r\n",
+			"Public release firmware version %hhu, BPT %hhx BCS %hhx\r\n",
+			bms_version.fw_ver.fw_version, bms_version.fw_ver.bpt, bms_version.fw_ver.bcs);
+	serial_bprintf(buf, "Internal firmware version %hu\r\n", bms_version.int_fw_ver);
+	serial_bprintf(buf, "Bootloader version %hhu, profile version %hhu\r\n",
 			bms_version.loader_ver.booloader_ver,
 			bms_version.loader_ver.profile_ver);
 
 	uint8_t *s = bms_version.serial_num;
 	serial_bprintf(buf,
-			"Product Serial Number %hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx\r\n",
-			s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10],
-			s[11]);
+			"Product serial number %hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx-%hhx\r\n",
+			s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10], s[11]);
+
+	serial_bprintf(buf, "\r\n");
+
+	serial_bprintf(buf, "Uptime: %us\r\n", millis() / 1000);
+	serial_bprintf(buf, "Loop duration: %hums\r\n", loop_duration);
+	serial_bprintf(buf, "Free memory: %d\r\n", free_memory);
 
 	serial_bprintf(buf, "\r\n");
 
 }
 
-void onsend_callback(uint32_t id, uint8_t frame[], uint8_t len) {
+void send_si_data() {
 
-	serial_bprintf(buf, "Callback invoked with cmd %lx and len %hhu\r\n", id,
-			len);
-
-	if (wifi_avail) {
-		uint8_t *datagram = malloc(4 + len);
-		memcpy(datagram, &id, 4);
-		memcpy(&datagram[4], frame, len);
-
-		for(int i = 0; i < 10; i++) {
-			wifi_send_data(datagram, 4 + len);
-		}
-
-		free(datagram);
-	}
+	// Send data to the Sunny Island
+	send_si_safety_frame(&battery_config, &battery_safety, &battery_current, &onsend_callback);
+	send_si_soc_frame(&battery_soc, &onsend_callback);
+	send_si_sensor_frame(&battery_voltage, &battery_current, &battery_temp, &onsend_callback);
+	send_si_faults(&battery_config, &battery_voltage, &battery_current, &battery_safety, &onsend_callback);
+	send_si_id_frame(&onsend_callback);
+	send_si_system_frame(&bms_version, battery_config.capacity, &onsend_callback);
 
 }
 
-void send_battery_data() {
+void send_si_fault_data() {
 
-	send_name_frame(onsend_callback);
-	send_id_frame(battery_config.capacity, onsend_callback);
-	send_soc_frame(&battery_soc, onsend_callback);
-	send_voltage_frame(&battery_voltage, onsend_callback);
-	send_charge_params_frame(&battery_current, onsend_callback);
+	send_si_faults(&battery_config, &battery_voltage, &battery_current, &battery_safety, &onsend_callback);
 
 }
 
-void send_battery_faults() {
+void send_telemetry_data() {
 
-	if (battery_voltage.min_cell_voltage < battery_safety.cell_discharged_v) {
-		serial_bprintf(buf, "FAULT: undervoltage\r\n");
-		send_fault_frame(FAULT0_UNDERVOLTAGE, 0, 0, 0, onsend_callback);
-	}
+	send_tiny_telemetry_data(&battery_config, &battery_voltage, &onsend_callback);
+	send_system_telemtry_data(loop_duration, free_memory);
 
-	if (battery_voltage.max_cell_voltage > battery_safety.cell_charged_v) {
-		serial_bprintf(buf, "FAULT: overvoltage\r\n");
-		send_fault_frame(FAULT0_OVERVOLTAGE, 0, 0, 0, onsend_callback);
-	}
+}
 
-	if (battery_current.pack_current * -1
-			> battery_current.max_discharge_current) {
-		serial_bprintf(buf, "FAULT: discharge overcurrent\r\n");
-		send_fault_frame(0, FAULT1_DISCHARGE_OVERCURRENT, 0, 0,
-				onsend_callback);
-	}
+void update_system_data(unsigned long loop_start_time) {
 
-	if (battery_current.pack_current > battery_current.max_charge_current) {
-		serial_bprintf(buf, "FAULT: charge overcurrent\r\n");
-		send_fault_frame(0, 0, FAULT2_CHARGE_OVERCURRENT, 0, onsend_callback);
-	}
+	loop_duration = millis() - loop_start_time;
+	free_memory = get_free_memory();
 
 }
 
 void loop() {
 
-	load_battery_data();
+	unsigned long loop_start_time = millis();
 
-	if (battery_config.cell_count > 0) {
+	if (next_process_time <= loop_start_time) {
 
-		dump_battery_data();
-		send_battery_data();
-		send_battery_faults();
+		load_battery_data();
+
+		if (battery_config.cell_count > 0) {
+
+			print_data();
+			send_si_data();
+			send_telemetry_data();
+
+		} else {
+
+			send_si_fault_data();
+
+		}
+
+		reset_sampling_data();
+		update_system_data(loop_start_time);
+
+		next_process_time = loop_start_time + LOOP_PROCESS_INTERVAL;
+
+	} else if (next_sampling_time <= loop_start_time) {
+
+		load_battery_sampling_data();
+
+		next_sampling_time = loop_start_time + LOOP_SAMPLING_INTERVAL;
 
 	}
-
-	serial_bprintf(buf, "Uptime: %us\r\n", millis() / 1000);
-	serial_bprintf(buf, "Free memory: %u\r\n", freeMemory());
-
-	delay(POLL_INTERVAL);
 
 }

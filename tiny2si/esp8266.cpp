@@ -53,7 +53,7 @@ int init_wifi() {
 
 	int result = 1;
 
-	DEBUGP("init_wifi");
+	DEBUGP("init_wifi\r\n");
 
 	wifiSerial->begin(WIFI_BAUD);
 
@@ -66,13 +66,14 @@ int init_wifi() {
 //	send_cmd("AT+RST\r\n", wifi_buf);
 
 	// probe for wifi being present
-
 	if (send_cmd("AT\r\n", wifi_buf) > 2) {
 		if (strncmp(wifi_buf, "AT\r\r\n\r\nOK", 128) >= 0) {
 			serial_bprintf(buf, "wifi response: %s\r\n", wifi_buf);
 		} else {
-			return -1;
+			return 0;
 		}
+	} else {
+		return 0;
 	}
 
 	// Check version
